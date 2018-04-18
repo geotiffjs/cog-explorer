@@ -6,10 +6,8 @@ module.exports = {
     'allowImportExportEverywhere': false
   },
   'env': {
-    'mocha': true,
     'browser': true,
     'worker': true,
-    'node': true
   },
   'rules': {
     'no-underscore-dangle': 0,

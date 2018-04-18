@@ -39,6 +39,10 @@ module.exports = {
     extensions: ['.js', '.jsx'],
   },
 
+  node: {
+    fs: 'empty',
+  },
+
   devServer: {
     host: '0.0.0.0',
     port: 8091,
