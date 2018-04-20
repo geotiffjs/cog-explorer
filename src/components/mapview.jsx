@@ -15,7 +15,7 @@ import extent from 'ol/extent';
 import { fromUrls } from 'geotiff';
 
 import CanvasTileImageSource from '../maputil';
-import { toMathArray, toOriginalArray, sigmoidalContrast, gamma } from '../renderutils';
+import { renderData } from '../renderutils';
 
 
 proj.setProj4(proj4);
@@ -40,6 +40,9 @@ class MapView extends Component {
             url: 'https://tiles.maps.eox.at/wms',
             params: { LAYERS: 's2cloudless' },
             projection: 'EPSG:4326',
+            attributions: [
+              '<a xmlns: dct="http://purl.org/dc/terms/" href="https://s2maps.eu" property="dct:title">Sentinel-2 cloudless - https://s2maps.eu</a> by <a xmlns:cc="http://creativecommons.org/ns#" href="https://eox.at" property="cc:attributionName" rel="cc:attributionURL">EOX IT Services GmbH</a> (Contains modified Copernicus Sentinel data 2016 & amp; 2017)',
+            ],
           }),
         }),
       ],
@@ -51,6 +54,8 @@ class MapView extends Component {
     });
     this.sceneLayers = {};
     this.sceneSources = {};
+    this.tileCache = {};
+    this.renderedTileCache = {};
   }
 
   componentDidMount() {
@@ -61,25 +66,27 @@ class MapView extends Component {
     const { scenes: prevScenes } = prevProps;
     const { scenes } = this.props;
 
-    console.log(prevScenes, scenes);
-
     if (prevScenes.length > scenes.length) {
       // TODO find scene and remove layer
       const removedScene = prevScenes.find(scene => scenes.indexOf(scene) === -1);
+      delete this.renderedTileCache[removedScene.id];
       this.map.removeLayer(this.sceneLayers[removedScene.id]);
     } else if (prevScenes.length < scenes.length) {
       this.addSceneLayer(scenes[scenes.length - 1]);
     } else {
       const changedScene = scenes.find((scene, index) => scene !== prevScenes[index]);
-      console.log('changed', changedScene);
+
+      delete this.renderedTileCache[changedScene.id];
 
       const layer = this.sceneLayers[changedScene.id];
-      const source = layer.getSource();
-      // refresh the source cache
-      source.setTileUrlFunction(
-        source.getTileUrlFunction(),
-        (new Date()).getTime(),
-      );
+      if (layer) {
+        const source = layer.getSource();
+        // refresh the source cache
+        source.setTileUrlFunction(
+          source.getTileUrlFunction(),
+          (new Date()).getTime(),
+        );
+      }
     }
   }
 
@@ -95,6 +102,26 @@ class MapView extends Component {
       this.sceneSources[sceneId][url] = fromUrls(url, [`${url}.ovr`]);
     }
     return this.sceneSources[sceneId][url];
+  }
+
+  async getRawTile(tiff, url, z, x, y) {
+    const id = `${url}-${z}-${x}-${y}`;
+    if (!this.tileCache[id]) {
+      const image = await tiff.getImage(await tiff.getImageCount() - z - 1);
+
+      const wnd = [
+        x * image.getTileWidth(),
+        image.getHeight() - ((y + 1) * image.getTileHeight()),
+        (x + 1) * image.getTileWidth(),
+        image.getHeight() - (y * image.getTileHeight()),
+      ];
+
+      this.tileCache[id] = image.readRasters({
+        window: wnd,
+      });
+    }
+
+    return this.tileCache[id];
   }
 
   async addSceneLayer(scene) {
@@ -145,12 +172,26 @@ class MapView extends Component {
 
     this.map.getView().animate({
       center: proj.transform(
-        extent.getCenter(first.getBoundingBox()), epsg, this.map.getView().getProjection()
+        extent.getCenter(first.getBoundingBox()),
+        epsg, this.map.getView().getProjection(),
       ),
     });
   }
 
   async renderTile(sceneId, canvas, z, x, y) {
+    const id = `${z}-${x}-${y}`;
+
+    if (!this.renderedTileCache[sceneId]) {
+      this.renderedTileCache[sceneId] = {};
+    }
+
+    if (!this.renderedTileCache[sceneId][id]) {
+      this.renderedTileCache[sceneId][id] = this.renderTileInternal(sceneId, canvas, z, x, y);
+    }
+    return this.renderedTileCache[sceneId][id];
+  }
+
+  async renderTileInternal(sceneId, canvas, z, x, y) {
     const scene = this.props.scenes.find(s => s.id === sceneId);
 
     if (!scene) {
@@ -163,69 +204,36 @@ class MapView extends Component {
       this.getImage(sceneId, scene.blueBand),
     ]);
 
+    redImage.baseUrl = scene.redBand;
+    greenImage.baseUrl = scene.greenBand;
+    blueImage.baseUrl = scene.blueBand;
+
     const [redArr, greenArr, blueArr] = await all([redImage, greenImage, blueImage].map(
-      async (tiff, index) => {
-        const image = await tiff.getImage(await tiff.getImageCount() - z - 1);
-
-        // const numXTiles = Math.ceil(image.getWidth() / image.getTileWidth());
-        // const numYTiles = Math.ceil(image.getHeight() / image.getTileHeight());
-
-        const wnd = [
-          x * image.getTileWidth(),
-          image.getHeight() - ((y + 1) * image.getTileHeight()),
-          (x + 1) * image.getTileWidth(),
-          image.getHeight() - (y * image.getTileHeight()),
-        ];
-
-        const response = await image.readRasters({
-          window: wnd,
-          fillValue: index === 3 ? 1 : 0,
-        });
-        return response;
-      },
+      tiff => this.getRawTile(tiff, tiff.baseUrl, z, x, y),
     ));
 
     const { width, height } = redArr;
     canvas.width = width;
     canvas.height = height;
 
-    let [red, green, blue] = [redArr, greenArr, blueArr].map(arr => arr[0]);
+    console.time(`rendering ${sceneId + z + x + y}`);
+    const [red, green, blue] = [redArr, greenArr, blueArr].map(arr => arr[0]);
+    renderData(canvas, scene.pipeline, width, height, red, green, blue);
+    console.timeEnd(`rendering ${sceneId + z + x + y}`);
 
-    [red, green, blue] = [
-      toMathArray(red),
-      toMathArray(green),
-      toMathArray(blue),
-    ];
+    // const ctx = canvas.getContext('2d');
+    // const id = ctx.createImageData(width, height);
+    // const o = id.data;
 
-    const contrast = 50;
-    const bias = 0.16;
-
-    [red, green, blue] = [
-      sigmoidalContrast(red, contrast, bias),
-      sigmoidalContrast(green, contrast, bias),
-      sigmoidalContrast(blue, contrast, bias),
-    ];
-
-    red = gamma(red, 1.03);
-    blue = gamma(blue, 0.925);
-
-    [red, green, blue] = [
-      toOriginalArray(red, Uint8Array),
-      toOriginalArray(green, Uint8Array),
-      toOriginalArray(blue, Uint8Array),
-    ];
-
-    const ctx = canvas.getContext('2d');
-    const id = ctx.createImageData(width, height);
-    const o = id.data;
-
-    for (let i = 0; i < id.data.length / 4; ++i) {
-      o[i * 4] = red[i];
-      o[(i * 4) + 1] = green[i];
-      o[(i * 4) + 2] = blue[i];
-      o[(i * 4) + 3] = (!red[i] && !green[i] && !blue[i]) ? 0 : 255;
-    }
-    ctx.putImageData(id, 0, 0);
+    // console.time(`blitting ${sceneId + z + x + y}`);
+    // for (let i = 0; i < id.data.length / 4; ++i) {
+    //   o[i * 4] = red[i];
+    //   o[(i * 4) + 1] = green[i];
+    //   o[(i * 4) + 2] = blue[i];
+    //   o[(i * 4) + 3] = (!red[i] && !green[i] && !blue[i]) ? 0 : 255;
+    // }
+    // ctx.putImageData(id, 0, 0);
+    // console.timeEnd(`blitting ${sceneId + z + x + y}`);
   }
 
   render() {
