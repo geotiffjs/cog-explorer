@@ -179,14 +179,14 @@ function createProgram(gl, vertexShaderSource, fragmentShaderSource) {
   gl.shaderSource(vertexShader, vertexShaderSource);
   gl.compileShader(vertexShader);
   if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
-    throw new Error(gl.getShaderInfoLog(vertexShader));
+    throw new Error(gl.getShaderInfoLog(vertexShader) + vertexShaderSource);
   }
 
   const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
   gl.shaderSource(fragmentShader, fragmentShaderSource);
   gl.compileShader(fragmentShader);
   if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
-    throw new Error(gl.getShaderInfoLog(fragmentShader));
+    throw new Error(gl.getShaderInfoLog(fragmentShader) + fragmentShaderSource);
   }
 
   const program = gl.createProgram();
@@ -212,8 +212,8 @@ function setRectangle(gl, x, y, width, height) {
 
 function createTexture(gl, data, width, height) {
   gl.viewport(0, 0, width, height);
-  const textureData = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, textureData);
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
 
   // Set the parameters so we can render any size image.
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -225,9 +225,9 @@ function createTexture(gl, data, width, height) {
   gl.texImage2D(gl.TEXTURE_2D, 0,
     gl.LUMINANCE,
     width, height, 0,
-    gl.LUMINANCE, gl.FLOAT, new Float32Array(data),
+    gl.LUMINANCE, gl.FLOAT, data ? new Float32Array(data) : null,
   );
-  return textureData;
+  return texture;
 }
 
 const vertexShaderSource = `
@@ -235,6 +235,7 @@ const vertexShaderSource = `
   attribute vec2 a_texCoord;
   uniform mat3 u_matrix;
   uniform vec2 u_resolution;
+  uniform float u_flipY;
   varying vec2 v_texCoord;
   void main() {
     // apply transformation matrix
@@ -245,7 +246,7 @@ const vertexShaderSource = `
     vec2 zeroToTwo = zeroToOne * 2.0;
     // convert from 0->2 to -1->+1 (clipspace)
     vec2 clipSpace = zeroToTwo - 1.0;
-    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+    gl_Position = vec4(clipSpace * vec2(1, u_flipY), 0, 1);
     // pass the texCoord to the fragment shader
     // The GPU will interpolate this value between points.
     v_texCoord = a_texCoord;
@@ -262,8 +263,8 @@ function createFragmentShaderSource(pipeline) {
   uniform sampler2D u_textureGreen;
   uniform sampler2D u_textureBlue;
 
-  ${fragSigmoidalContrastSrc}
-  ${fragGammaSrc}
+  // ${fragSigmoidalContrastSrc}
+  // ${fragGammaSrc}
 
   // the texCoords passed in from the vertex shader.
   varying vec2 v_texCoord;
@@ -301,16 +302,224 @@ function createFragmentShaderSource(pipeline) {
   }`;
 }
 
+class StepRenderer {
+  constructor(gl, vertexShaderSource, fragmentShaderSource, parameterMapping) {
+    const program = createProgram(gl, vertexShaderSource, fragmentShaderSource);
+    this.program = program;
+    gl.useProgram(program);
+
+    // look up where the vertex data needs to go.
+    const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord');
+
+    // provide texture coordinates for the rectangle.
+    const texCoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+      0.0, 0.0,
+      1.0, 0.0,
+      0.0, 1.0,
+      0.0, 1.0,
+      1.0, 0.0,
+      1.0, 1.0]), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(texCoordLocation);
+    gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
+
+    // set the images
+    gl.uniform1i(gl.getUniformLocation(program, 'u_textureInput'), 0);
+
+    this.parameterMapping = parameterMapping;
+  }
+
+  render(gl, inputTexture, outputFramebuffer, unwrap, wrap, flipY, width, height, parameters) {
+    const program = this.program;
+    gl.useProgram(program);
+    for (const [paramName, shaderName] of Object.entries(this.parameterMapping)) {
+      gl.uniform1f(gl.getUniformLocation(program, shaderName), parameters[paramName]);
+    }
+
+    gl.uniform1i(gl.getUniformLocation(program, 'u_unwrap'), unwrap);
+    gl.uniform1i(gl.getUniformLocation(program, 'u_wrap'), wrap);
+    gl.uniform1f(gl.getUniformLocation(program, 'u_flipY'), flipY ? -1 : 1);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, inputTexture);
+
+    const positionLocation = gl.getAttribLocation(program, 'a_position');
+    const resolutionLocation = gl.getUniformLocation(program, 'u_resolution');
+    const matrixLocation = gl.getUniformLocation(program, 'u_matrix');
+
+    gl.uniform2f(resolutionLocation, width, height);
+    const matrix = [
+      1, 0, 0,
+      0, 1, 0,
+      0, 0, 1,
+    ];
+    gl.uniformMatrix3fv(matrixLocation, false, matrix);
+
+    const positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.enableVertexAttribArray(positionLocation);
+    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+    setRectangle(gl, 0, 0, width, height);
+
+    // define output framebuffer
+    gl.bindFramebuffer(gl.FRAMEBUFFER, outputFramebuffer);
+    gl.viewport(0, 0, width, height);
+
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+  }
+}
+
+function createAndSetupTexture(gl) {
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+
+  // Set up texture so we can render any size image and so we are
+  // working with pixels.
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+  return texture;
+}
+
+const common = `
+  precision mediump float;
+  uniform bool u_unwrap;
+  uniform bool u_wrap;
+  uniform sampler2D u_textureData;
+  // the texCoords passed in from the vertex shader.
+  varying vec2 v_texCoord;
+`;
+
+const lib = `
+  ${common}
+  vec4 packFloat(float v) {
+    vec4 enc = vec4(1.0, 255.0, 65025.0, 16581375.0) * v;
+    enc = fract(enc);
+    enc -= enc.yzww * vec4(1.0 / 255.0, 1.0 / 255.0, 1.0 / 255.0, 0.0);
+    return enc;
+  }
+
+  float unpackFloat(vec4 rgba) {
+    return dot(rgba, vec4(1.0, 1.0 / 255.0, 1.0 / 65025.0, 1.0 / 16581375.0));
+  }
+`;
+
+
+const stretchShaderSource = `
+  ${lib}
+  uniform float u_max;
+
+  void main() {
+    float value;
+    if (u_unwrap) {
+      value = unpackFloat(texture2D(u_textureData, v_texCoord));
+    } else {
+      value = texture2D(u_textureData, v_texCoord)[0];
+    }
+
+    gl_FragColor = packFloat(value / u_max);
+  }
+`;
+
+const sigmoidalContrastShaderSource = `
+  ${lib}
+  uniform float u_contrast;
+  uniform float u_bias;
+
+  float sigmoidalContrast(float v, float contrast, float bias) {
+    float alpha = bias;
+    float beta = contrast;
+
+    if (beta > 0.0) {
+      float denominator = 1.0 / (1.0 + exp(beta * (alpha - 1.0))) - 1.0 / (1.0 + exp(beta * alpha));
+      float numerator = 1.0 / (1.0 + exp(beta * (alpha - v))) - 1.0 / (1.0 + exp(beta * alpha));
+      return numerator / denominator;
+    } else {
+      return (
+        (beta * alpha) - log(
+          (
+            1.0 / (
+              (v / (1.0 + exp((beta * alpha) - beta))) -
+              (v / (1.0 + exp(beta * alpha))) +
+              (1.0 / (1.0 + exp(beta * alpha)))
+            )
+          ) - 1.0)
+      ) / beta;
+    }
+  }
+
+  void main() {
+    float value;
+    if (u_unwrap) {
+      value = unpackFloat(texture2D(u_textureData, v_texCoord));
+    } else {
+      value = texture2D(u_textureData, v_texCoord)[0];
+    }
+
+    gl_FragColor = packFloat(sigmoidalContrast(value, u_contrast, u_bias));
+  }
+
+`;
+
+const gammaShaderSource = `
+  ${lib}
+  uniform float u_gamma;
+
+  float gamma(float v, float g) {
+    return pow(v, 1.0 / g);
+  }
+
+  void main() {
+    float value;
+    if (u_unwrap) {
+      value = unpackFloat(texture2D(u_textureData, v_texCoord));
+    } else {
+      value = texture2D(u_textureData, v_texCoord)[0];
+    }
+
+    gl_FragColor = packFloat(gamma(value, u_gamma));
+  }
+`;
+
+const combineShaderSource = `
+  precision mediump float;
+  uniform bool u_unwrap;
+  uniform bool u_wrap;
+  uniform sampler2D u_textureRed;
+  uniform sampler2D u_textureGreen;
+  uniform sampler2D u_textureBlue;
+  // the texCoords passed in from the vertex shader.
+  varying vec2 v_texCoord;
+
+  float unpackFloat(vec4 rgba) {
+    return dot(rgba, vec4(1.0, 1.0 / 255.0, 1.0 / 65025.0, 1.0 / 16581375.0));
+  }
+
+  void main() {
+    float red = unpackFloat(texture2D(u_textureRed, v_texCoord));
+    float green = unpackFloat(texture2D(u_textureGreen, v_texCoord));
+    float blue = unpackFloat(texture2D(u_textureBlue, v_texCoord));
+
+    if (red == 0.0 && green == 0.0 && blue == 0.0) {
+      discard;
+    }
+    gl_FragColor = vec4(red, green, blue, 1.0);
+  }
+`;
 
 const renderCanvas = document.createElement('canvas');
 const gl = create3DContext(renderCanvas);
-let program;
+let combineProgram;
 if (gl) {
-  program = createProgram(gl, vertexShaderSource, createFragmentShaderSource());
-  gl.useProgram(program);
+  combineProgram = createProgram(gl, vertexShaderSource, combineShaderSource);
+  gl.useProgram(combineProgram);
 
   // look up where the vertex data needs to go.
-  const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord');
+  const texCoordLocation = gl.getAttribLocation(combineProgram, 'a_texCoord');
 
   // provide texture coordinates for the rectangle.
   const texCoordBuffer = gl.createBuffer();
@@ -325,25 +534,128 @@ if (gl) {
   gl.enableVertexAttribArray(texCoordLocation);
   gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
 
-  gl.useProgram(program);
   // set the images
-  gl.uniform1i(gl.getUniformLocation(program, 'u_textureRed'), 0);
-  gl.uniform1i(gl.getUniformLocation(program, 'u_textureGreen'), 1);
-  gl.uniform1i(gl.getUniformLocation(program, 'u_textureBlue'), 2);
+  gl.uniform1i(gl.getUniformLocation(combineProgram, 'u_textureRed'), 0);
+  gl.uniform1i(gl.getUniformLocation(combineProgram, 'u_textureGreen'), 1);
+  gl.uniform1i(gl.getUniformLocation(combineProgram, 'u_textureBlue'), 2);
+}
+
+const stretchRenderer = new StepRenderer(gl, vertexShaderSource, stretchShaderSource, { max: 'u_max' });
+const stepRenderers = {
+  'sigmoidal-contrast': new StepRenderer(gl, vertexShaderSource, sigmoidalContrastShaderSource, { contrast: 'u_contrast', bias: 'u_bias' }),
+  gamma: new StepRenderer(gl, vertexShaderSource, gammaShaderSource, { value: 'u_gamma' }),
+};
+
+
+function checkFB(gl) {
+  var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+  switch (status) {
+    case gl.FRAMEBUFFER_COMPLETE:
+      break;
+    case gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+      throw ("Incomplete framebuffer: FRAMEBUFFER_INCOMPLETE_ATTACHMENT");
+      break;
+    case gl.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+      throw ("Incomplete framebuffer: FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT");
+      break;
+    case gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
+      throw ("Incomplete framebuffer: FRAMEBUFFER_INCOMPLETE_DIMENSIONS");
+      break;
+    case gl.FRAMEBUFFER_UNSUPPORTED:
+      throw ("Incomplete framebuffer: FRAMEBUFFER_UNSUPPORTED");
+      break;
+    default:
+      throw ("Incomplete framebuffer: " + status);
+  }
 }
 
 function renderDataWebGl(canvas, gl, pipeline, width, height, redData, greenData, blueData) {
   try {
+    gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
+
     renderCanvas.width = width;
     renderCanvas.height = height;
-    
-    gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
+
+    const fboTextures = [];
+    const framebuffers = [];
+    for (let ii = 0; ii < 2; ++ii) {
+      const texture = createAndSetupTexture(gl);
+      fboTextures.push(texture);
+
+      // make the texture the same size as the image
+      gl.texImage2D(
+        gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0,
+        gl.RGBA, gl.UNSIGNED_BYTE, null,
+      );
+
+      // Create a framebuffer
+      const fbo = gl.createFramebuffer();
+      framebuffers.push(fbo);
+    }
+
+    const [textureRed, textureGreen, textureBlue] = [['red', redData], ['green', greenData], ['blue', blueData]].map(
+      ([color, data]) => {
+        const usedSteps = pipeline.filter(step => (step.bands === color || step.bands === 'all' || !step.bands));
+
+        const texture = createTexture(gl, data, width, height);
+        const outputTexture = createAndSetupTexture(gl);
+        // make the texture the same size as the image
+        gl.texImage2D(
+          gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0,
+          gl.RGBA, gl.UNSIGNED_BYTE, null,
+        );
+
+        if (usedSteps.length > 0) {
+          for (let i = 0; i < 2; ++i) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffers[i]);
+            gl.framebufferTexture2D(
+              gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, fboTextures[i], 0);
+            checkFB(gl);
+          }
+        } else {
+          gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffers[0]);
+          gl.framebufferTexture2D(
+            gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, outputTexture, 0);
+          checkFB(gl);
+        }
+
+        // stretch to 0-1
+        stretchRenderer.render(gl, texture, framebuffers[0], false, true, false, width, height, { max: 65535 });
+
+        for (let i = 0; i < usedSteps.length; ++i) {
+          const step = usedSteps[i];
+          const renderer = stepRenderers[step.operation];
+          console.log(color, step, renderer);
+
+          // if we are in the last step, set the target for the framebuffer to the output texture
+          if (i === usedSteps.length - 1) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffers[(i + 1) % 2]);
+            gl.framebufferTexture2D(
+              gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, outputTexture, 0);
+            checkFB(gl);
+          }
+
+          renderer.render(
+            gl,
+            fboTextures[i % 2], // input texture
+            framebuffers[(i + 1) % 2], // output framebuffer
+            i > 0, // whether float unwrapping is necessary
+            true, // whether to wrap float as rgba
+            false, // flip
+            width, height,
+            step,
+          );
+        }
+        return outputTexture;
+      });
 
     gl.viewport(0, 0, width, height);
 
-    const textureRed = createTexture(gl, redData, width, height);
-    const textureGreen = createTexture(gl, greenData, width, height);
-    const textureBlue = createTexture(gl, blueData, width, height);
+    // const textureRed = createTexture(gl, redData, width, height);
+    // const textureGreen = createTexture(gl, greenData, width, height);
+    // const textureBlue = createTexture(gl, blueData, width, height);
+
+    gl.useProgram(combineProgram);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, textureRed);
@@ -352,19 +664,13 @@ function renderDataWebGl(canvas, gl, pipeline, width, height, redData, greenData
     gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_2D, textureBlue);
 
-    const positionLocation = gl.getAttribLocation(program, 'a_position');
-    const resolutionLocation = gl.getUniformLocation(program, 'u_resolution');
-    // const domainLocation = gl.getUniformLocation(program, 'u_domain');
-    // const noDataValueLocation = gl.getUniformLocation(program, 'u_noDataValue');
-    // const clampLowLocation = gl.getUniformLocation(program, 'u_clampLow');
-    // const clampHighLocation = gl.getUniformLocation(program, 'u_clampHigh');
-    const matrixLocation = gl.getUniformLocation(program, 'u_matrix');
+    const positionLocation = gl.getAttribLocation(combineProgram, 'a_position');
+    const resolutionLocation = gl.getUniformLocation(combineProgram, 'u_resolution');
+    const matrixLocation = gl.getUniformLocation(combineProgram, 'u_matrix');
+
+    gl.uniform1f(gl.getUniformLocation(combineProgram, 'u_flipY'), -1);
 
     gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
-    // gl.uniform2fv(domainLocation, domain);
-    // gl.uniform1i(clampLowLocation, clampLow);
-    // gl.uniform1i(clampHighLocation, clampHigh);
-    // gl.uniform1f(noDataValueLocation, noDataValue);
     const matrix = [
       1, 0, 0,
       0, 1, 0,
@@ -380,6 +686,8 @@ function renderDataWebGl(canvas, gl, pipeline, width, height, redData, greenData
     setRectangle(gl, 0, 0, canvas.width, canvas.height);
 
     // Draw the rectangle.
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, width, height);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
 
     // cleanup
