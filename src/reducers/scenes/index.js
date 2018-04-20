@@ -68,6 +68,7 @@ export default function (state = initialState, action) {
     case SCENE_PIPELINE_ADD_STEP:
     case SCENE_PIPELINE_REMOVE_STEP:
     case SCENE_PIPELINE_INDEX_STEP:
+    case SCENE_PIPELINE_EDIT_STEP:
       return state.map(
         scene => (
           (scene.id === action.sceneId) ? {
