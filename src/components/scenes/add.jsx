@@ -87,7 +87,7 @@ class ConnectedAddSceneForm extends Component {
         /> */}
         <div className="input-group-append">
           <button
-            className="btn btn-outline-secondary"
+            className="btn btn-primary"
             value={url}
             onClick={this.handleAddClick}
             disabled={!this.checkUrl(url) || this.isLoading()}
@@ -96,14 +96,14 @@ class ConnectedAddSceneForm extends Component {
           </button>
 
           <button
-            className="btn btn-outline-secondary"
+            className="btn btn-secondary"
             onClick={() => this.props.addSceneFromIndex(example1Url, examplePipeline)}
             disabled={!this.checkUrl(example1Url) || this.isLoading()}
           >
             Load example scene 1
           </button>
           <button
-            className="btn btn-outline-secondary"
+            className="btn btn-secondary"
             onClick={() => this.props.addSceneFromIndex(example2Url, examplePipeline)}
             disabled={!this.checkUrl(example2Url) || this.isLoading()}
           >

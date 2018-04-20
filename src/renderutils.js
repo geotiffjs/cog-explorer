@@ -625,7 +625,6 @@ function renderDataWebGl(canvas, gl, pipeline, width, height, redData, greenData
         for (let i = 0; i < usedSteps.length; ++i) {
           const step = usedSteps[i];
           const renderer = stepRenderers[step.operation];
-          console.log(color, step, renderer);
 
           // if we are in the last step, set the target for the framebuffer to the output texture
           if (i === usedSteps.length - 1) {

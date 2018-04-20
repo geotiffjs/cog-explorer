@@ -14,6 +14,7 @@ class ConnectedApp extends Component {
     super();
     this.state = {
       currentSceneId: null,
+      showList: false,
     };
 
     this.handleSceneShowClicked = this.handleSceneShowClicked.bind(this);
@@ -24,18 +25,53 @@ class ConnectedApp extends Component {
   }
 
   render() {
-    const { currentSceneId } = this.state;
+    const { currentSceneId, showList } = this.state;
+
+    console.log(showList)
     const { scenes } = this.props;
     return (
       <div>
-        <div style={{ height: '50%' }}>
+        <div style={{ height: '100%' }}>
           <MapView />
         </div>
         <div className="container">
-          <AddSceneForm />
-          <ListScenes onSceneClicked={this.handleSceneShowClicked} />
-          { currentSceneId && scenes.find(scene => scene.id === currentSceneId) &&
-            <SceneDetails id={currentSceneId} onSceneHide={this.handleSceneShowClicked} />
+          <div
+            style={{
+              position: 'absolute',
+              top: '10px',
+              left: '50px',
+            }}
+          >
+            <AddSceneForm />
+          </div>
+          <button
+            className="btn btn-large"
+            style={{
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+            }}
+            onClick={() => this.setState({ showList: !showList })}
+          >
+            <i className="fas fa-bars" />
+          </button>
+          {
+            showList && <div
+              className="card card-body"
+              style={{
+                position: 'absolute',
+                top: '10px',
+                right: '60px',
+                width: '50%',
+                'max-height': 'calc(100% - 20px)',
+                'overflow': 'scroll',
+              }}
+            >
+              { <ListScenes onSceneClicked={this.handleSceneShowClicked} /> }
+              { currentSceneId && scenes.find(scene => scene.id === currentSceneId) &&
+                <SceneDetails id={currentSceneId} onSceneHide={this.handleSceneShowClicked} />
+              }
+            </div>
           }
         </div>
       </div>
