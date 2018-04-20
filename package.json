@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "webpack-dev-server -d -w --config webpack.conf.js"
+    "dev": "webpack-dev-server -d --hot --config webpack.conf.js",
+    "build": "webpack --config webpack.conf.js"
   },
   "author": "",
   "license": "ISC",
@@ -33,6 +34,7 @@
     "eslint-plugin-import": "^2.8.0",
     "eslint-plugin-jsx-a11y": "^6.0.3",
     "eslint-plugin-react": "^7.7.0",
+    "react-hot-loader": "^4.1.0",
     "style-loader": "^0.20.3",
     "webpack": "^4.5.0",
     "webpack-cli": "^2.0.14",
