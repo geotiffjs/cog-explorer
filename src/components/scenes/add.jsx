@@ -15,7 +15,7 @@ const mapStateToProps = ({ scenes, main }) => ({ scenes, isLoading: main.isLoadi
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    addSceneFromIndex: url => dispatch(addSceneFromIndex(url)),
+    addSceneFromIndex: (...args) => dispatch(addSceneFromIndex(...args)),
   };
 };
 
@@ -49,32 +49,67 @@ class ConnectedAddSceneForm extends Component {
 
   render() {
     const { url } = this.state;
+    const examplePipeline = [
+      {
+        operation: 'sigmoidal-contrast',
+        contrast: 50,
+        bias: 0.16,
+      }, {
+        operation: 'gamma',
+        bands: 'red',
+        value: 1.03,
+      }, {
+        operation: 'gamma',
+        bands: 'blue',
+        value: 0.925,
+      },
+    ];
     const example1Url = 'https://landsat-pds.s3.amazonaws.com/L8/139/045/LC81390452014295LGN00/index.html';
     const example2Url = 'https://landsat-pds.s3.amazonaws.com/c1/L8/139/045/LC08_L1TP_139045_20170304_20170316_01_T1/index.html';
     return (
-      <div className="add-scene-comp">
-        <input value={url} onChange={this.handleUrlChange} />
-        <button
+      <div className="add-scene-comp input-group mb-3">
+        {/*  */}
+        <input
+          className="form-control"
+          placeholder="Index URL"
           value={url}
-          onClick={this.handleAddClick}
-          disabled={!this.checkUrl(url) || this.isLoading()}  
-        >
-          Add
-        </button>
+          onChange={this.handleUrlChange}
+        />
+        {/* <i
+          className="fas fa-spin fa-cog"
+          style={{
+            position: 'absolute',
+            'margin-left': '5px',
+            height: '25px',
+            display: this.isLoading() ? 'none' : 'flex',
+            'align-items': 'center',
+          }}
+        /> */}
+        <div className="input-group-append">
+          <button
+            className="btn btn-outline-secondary"
+            value={url}
+            onClick={this.handleAddClick}
+            disabled={!this.checkUrl(url) || this.isLoading()}
+          >
+            Add
+          </button>
 
-        <button
-          onClick={() => this.props.addSceneFromIndex(example1Url)}
-          disabled={!this.checkUrl(example1Url) || this.isLoading()}
-        >
-          Load example scene 1
-        </button>
-        <button
-          onClick={() => this.props.addSceneFromIndex(example2Url)}
-          disabled={!this.checkUrl(example2Url) || this.isLoading()}
-        >
-          Load example scene 2
-        </button>
-        <i className={`fas fa-spin fa-cog ${this.isLoading() ? 'show' : 'hide'}`} />
+          <button
+            className="btn btn-outline-secondary"
+            onClick={() => this.props.addSceneFromIndex(example1Url, examplePipeline)}
+            disabled={!this.checkUrl(example1Url) || this.isLoading()}
+          >
+            Load example scene 1
+          </button>
+          <button
+            className="btn btn-outline-secondary"
+            onClick={() => this.props.addSceneFromIndex(example2Url, examplePipeline)}
+            disabled={!this.checkUrl(example2Url) || this.isLoading()}
+          >
+            Load example scene 2
+          </button>
+        </div>
       </div>
     );
   }
