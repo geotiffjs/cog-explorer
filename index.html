@@ -8,8 +8,74 @@
       crossorigin="anonymous">
   </head>
   <body>
+    <div class="modal" id="initModal" role="dialog" aria-labelledby="exampleModalLabel">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Landsat-8 Cloud Optimized GeoTIFF (COG) explorer</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <h2>Howdie!</h2>
+            <p>
+              Welcome to the COG explorer!
+            </p>
+            <p>
+              This app allows you to inspect single scenes of the Landsat-8 archive on Amazon S3.
+              Either copy the URL of the <code>index.html</code> of the scene you want to
+              investigate. Alternatively, we have already prepared two scenes: just use the two
+              example buttons.
+            </p>
+            <p>
+              The selected scene will be displayed on the map, which you can zoom and pan as you
+              like. Additionally, you can adjust how the scene is displayed by clicking on the
+              <button class="btn btn-sm"><i class="fas fa-bars"></i></button> icon.
+            </p>
+            <p>
+              In the options menu, you can specify what bands you want to use as the red, green
+              and blue channels (or use one of the already prepared scenarios) and specify what
+              image processing steps shall be applied (currently contrast enhancement and gamma
+              are implemented).
+            </p>
+            <p>
+              <small>
+                This application uses the <a href="#">geotiff.js</a> library to read the actual
+                raster values from the band files (or the overviews, depending on the maps
+                zoomlevel). Taking advantage of the optimized structure of COGs, only the parts
+                of the file that are actually required will be requested, drastically reducing
+                the overall amount of data transmitted from the archive.
+              </small>
+            </p>
+            <p>
+              If you want to know more about COGs please refer to <a href="http://www.cogeo.org/">their introduction page</a>.
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" data-dismiss="modal" class="btn btn-primary">Okay</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn" data-toggle="modal" data-target="#initModal" style="position: absolute; bottom: 10px; left: 10px; z-index: 10000;">
+      <i class="fas fa-question"></i>
+    </button>
+
     <div id="app">
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
+
     <script src="app.bundle.js"></script>
+
+    <script type="text/javascript">
+      $(window).on('load', function () {
+        $('#initModal').modal('show');
+      });
+    </script>
   </body>
 </html>
