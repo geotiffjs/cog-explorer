@@ -126,11 +126,11 @@ class MapView extends Component {
 
   async addSceneLayer(scene) {
     this.sceneSources[scene.id] = {
-      [scene.redBand]: this.getImage(scene.id, scene.redBand),
-      [scene.greenBand]: this.getImage(scene.id, scene.greenBand),
-      [scene.blueBand]: this.getImage(scene.id, scene.blueBand),
+      [scene.redBand]: this.getImage(scene.id, scene.bands.get(scene.redBand)),
+      [scene.greenBand]: this.getImage(scene.id, scene.bands.get(scene.greenBand)),
+      [scene.blueBand]: this.getImage(scene.id, scene.bands.get(scene.blueBand)),
     };
-    const tiff = await this.getImage(scene.id, scene.redBand);
+    const tiff = await this.getImage(scene.id, scene.bands.get(scene.redBand));
 
     // calculate tilegrid from the 'red' image
     const images = [];
@@ -199,14 +199,14 @@ class MapView extends Component {
     }
 
     const [redImage, greenImage, blueImage] = await all([
-      this.getImage(sceneId, scene.redBand),
-      this.getImage(sceneId, scene.greenBand),
-      this.getImage(sceneId, scene.blueBand),
+      this.getImage(sceneId, scene.bands.get(scene.redBand)),
+      this.getImage(sceneId, scene.bands.get(scene.greenBand)),
+      this.getImage(sceneId, scene.bands.get(scene.blueBand)),
     ]);
 
-    redImage.baseUrl = scene.redBand;
-    greenImage.baseUrl = scene.greenBand;
-    blueImage.baseUrl = scene.blueBand;
+    redImage.baseUrl = scene.bands.get(scene.redBand);
+    greenImage.baseUrl = scene.bands.get(scene.greenBand);
+    blueImage.baseUrl = scene.bands.get(scene.blueBand);
 
     const [redArr, greenArr, blueArr] = await all([redImage, greenImage, blueImage].map(
       tiff => this.getRawTile(tiff, tiff.baseUrl, z, x, y),

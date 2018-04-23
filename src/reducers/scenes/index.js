@@ -17,6 +17,7 @@ function scenePipeline(state, action) {
         ...state.slice(action.index),
       ] : [...state, action.payload];
     case SCENE_PIPELINE_REMOVE_STEP:
+      console.log(state.filter((current, index) => index !== action.index));
       return state.filter((current, index) => index !== action.index);
     case SCENE_PIPELINE_INDEX_STEP: {
       const item = state[action.index];
@@ -54,6 +55,15 @@ export default function (state = initialState, action) {
           pipeline: action.pipeline,
         },
       ];
+
+      // return [{
+      //   id: action.sceneId,
+      //   bands: action.bands,
+      //   redBand: action.redBand,
+      //   greenBand: action.greenBand,
+      //   blueBand: action.blueBand,
+      //   pipeline: action.pipeline,
+      // }];
     case SCENE_REMOVE:
       return state.filter(scene => scene.id !== action.sceneId);
     case SCENE_CHANGE_BANDS:

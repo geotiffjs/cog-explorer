@@ -37,7 +37,14 @@ export function removeScene(url) {
 }
 
 export function addSceneFromIndex(url, pipeline = []) {
-  return async (dispatch) => {
+  return async (dispatch, getState) => {
+    const { scenes } = getState();
+
+    // remove old scenes
+    for (const scene of scenes) {
+      dispatch(removeScene(scene.id));
+    }
+
     dispatch(startLoading());
     try {
       const relUrl = url.endsWith('/') ? url : url.substring(0, url.lastIndexOf('/'));
@@ -47,10 +54,14 @@ export function addSceneFromIndex(url, pipeline = []) {
         .map(a => a.getAttribute('href'))
         .map(file => urlJoin(relUrl, file));
 
-      const red = files.filter(file => /LC0?8.*B4.TIF$/.test(file))[0];
-      const green = files.filter(file => /LC0?8.*B3.TIF$/.test(file))[0];
-      const blue = files.filter(file => /LC0?8.*B2.TIF$/.test(file))[0];
-      const bands = files.filter(file => /LC0?8.*B[0-9]+.TIF$/.test(file));
+      const red = 4;
+      const green = 3;
+      const blue = 2;
+      const bands = new Map(
+        files
+          .filter(file => /LC0?8.*B[0-9]+.TIF$/.test(file))
+          .map(file => [parseInt(/.*B([0-9]+).TIF/.exec(file)[1], 10), file]),
+      );
 
       // TODO unset loading
       dispatch(addScene(url, bands, red, green, blue, pipeline));
@@ -63,11 +74,27 @@ export function addSceneFromIndex(url, pipeline = []) {
 }
 
 export function addStep(url, operation) {
+  let values;
+  switch (operation) {
+    case 'sigmoidal-contrast':
+      values = {
+        contrast: 50,
+        bias: 0.15,
+      };
+      break;
+    case 'gamma':
+      values = { value: 1.0 };
+      break;
+    default:
+      values = {};
+      break;
+  }
   return {
     type: SCENE_PIPELINE_ADD_STEP,
     sceneId: url,
     payload: {
       operation,
+      ...values,
     },
   };
 }
@@ -78,5 +105,22 @@ export function editStep(url, index, payload) {
     sceneId: url,
     index,
     payload,
+  };
+}
+
+export function indexStep(url, index, newIndex) {
+  return {
+    type: SCENE_PIPELINE_INDEX_STEP,
+    sceneId: url,
+    index,
+    newIndex,
+  };
+}
+
+export function removeStep(url, index) {
+  return {
+    type: SCENE_PIPELINE_REMOVE_STEP,
+    sceneId: url,
+    index,
   };
 }

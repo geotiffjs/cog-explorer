@@ -14,7 +14,7 @@ class ConnectedApp extends Component {
     super();
     this.state = {
       currentSceneId: null,
-      showList: false,
+      showList: true,
     };
 
     this.handleSceneShowClicked = this.handleSceneShowClicked.bind(this);
@@ -26,9 +26,8 @@ class ConnectedApp extends Component {
 
   render() {
     const { currentSceneId, showList } = this.state;
-
-    console.log(showList)
     const { scenes } = this.props;
+
     return (
       <div>
         <div style={{ height: '100%' }}>
@@ -52,19 +51,20 @@ class ConnectedApp extends Component {
               right: '10px',
             }}
             onClick={() => this.setState({ showList: !showList })}
+            disabled={scenes.length === 0}
           >
             <i className="fas fa-bars" />
           </button>
           {
-            showList && <div
+            showList && scenes.length > 0 && <div
               className="card card-body"
               style={{
                 position: 'absolute',
                 top: '10px',
                 right: '60px',
                 width: '50%',
-                'max-height': 'calc(100% - 20px)',
-                'overflow': 'scroll',
+                maxHeight: 'calc(100% - 20px)',
+                overflowY: 'scroll',
               }}
             >
               { <ListScenes onSceneClicked={this.handleSceneShowClicked} /> }

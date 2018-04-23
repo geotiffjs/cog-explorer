@@ -19,6 +19,22 @@ const mapDispatchToProps = (dispatch) => {
   };
 };
 
+const examplePipeline = [
+  {
+    operation: 'sigmoidal-contrast',
+    contrast: 50,
+    bias: 0.16,
+  }, {
+    operation: 'gamma',
+    bands: 'red',
+    value: 1.03,
+  }, {
+    operation: 'gamma',
+    bands: 'blue',
+    value: 0.925,
+  },
+];
+
 class ConnectedAddSceneForm extends Component {
   constructor() {
     super();
@@ -36,7 +52,7 @@ class ConnectedAddSceneForm extends Component {
   }
 
   handleAddClick() {
-    this.props.addSceneFromIndex(this.state.url);
+    this.props.addSceneFromIndex(this.state.url, examplePipeline);
   }
 
   checkUrl(url) {
@@ -49,22 +65,9 @@ class ConnectedAddSceneForm extends Component {
 
   render() {
     const { url } = this.state;
-    const examplePipeline = [
-      {
-        operation: 'sigmoidal-contrast',
-        contrast: 50,
-        bias: 0.16,
-      }, {
-        operation: 'gamma',
-        bands: 'red',
-        value: 1.03,
-      }, {
-        operation: 'gamma',
-        bands: 'blue',
-        value: 0.925,
-      },
-    ];
-    const example1Url = 'https://landsat-pds.s3.amazonaws.com/L8/139/045/LC81390452014295LGN00/index.html';
+
+    // const example1Url = 'https://landsat-pds.s3.amazonaws.com/L8/139/045/LC81390452014295LGN00/index.html';
+    const example1Url = 'https://landsat-pds.s3.amazonaws.com/c1/L8/189/027/LC08_L1TP_189027_20180406_20180417_01_T1/index.html';
     const example2Url = 'https://landsat-pds.s3.amazonaws.com/c1/L8/139/045/LC08_L1TP_139045_20170304_20170316_01_T1/index.html';
     return (
       <div className="add-scene-comp input-group mb-3">
@@ -92,7 +95,7 @@ class ConnectedAddSceneForm extends Component {
             onClick={this.handleAddClick}
             disabled={!this.checkUrl(url) || this.isLoading()}
           >
-            Add
+            Load URL
           </button>
 
           <button

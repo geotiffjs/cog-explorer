@@ -386,7 +386,7 @@ function createAndSetupTexture(gl) {
 }
 
 const common = `
-  precision mediump float;
+  precision highp float;
   uniform bool u_unwrap;
   uniform bool u_wrap;
   uniform sampler2D u_textureData;
