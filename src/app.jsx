@@ -7,14 +7,14 @@ import ListScenes from './components/scenes/list';
 import SceneDetails from './components/scenes/details';
 import MapView from './components/mapview';
 
-const mapStateToProps = ({ scenes }) => ({ scenes });
+const mapStateToProps = ({ scenes, main }) => ({ scenes, ...main });
 
 class ConnectedApp extends Component {
   constructor() {
     super();
     this.state = {
       currentSceneId: null,
-      showList: true,
+      showList: false,
     };
 
     this.handleSceneShowClicked = this.handleSceneShowClicked.bind(this);
@@ -26,23 +26,41 @@ class ConnectedApp extends Component {
 
   render() {
     const { currentSceneId, showList } = this.state;
-    const { scenes } = this.props;
-
+    const { scenes, isLoading, tilesLoading } = this.props;
     return (
       <div>
-        <div style={{ height: '100%' }}>
+        <nav className="navbar navbar-expand-lg navbar-light bg-light">
+          <a className="navbar-brand" href="https://eox.at/" target="_blank">
+            <img src="//aws-catalog.eox.at/EOX_Logo_white.svg" />
+          </a>
+
+          <a className="navbar-brand" style={{color: "white"}}>
+            COG-Explorer
+          </a>
+
+          <div className="collapse navbar-collapse">
+            <form className="form-inline my-2 my-lg-0">
+              <AddSceneForm />
+              {/* <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" />
+              <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button> */}
+              <i
+                className="fas fa-spin fa-cog text-light"
+                style={{
+                  position: 'absolute',
+                  right: '60px',
+                  // display: this.isLoading() ? 'none' : 'flex',
+                  visibility: (isLoading || tilesLoading > 0) ? 'visible' : 'hidden',
+                }}
+              />
+            </form>
+          </div>
+        </nav>
+
+
+        <div style={{ height: 'calc(100% - 50px)' }}>
           <MapView />
         </div>
         <div className="container">
-          <div
-            style={{
-              position: 'absolute',
-              top: '10px',
-              left: '50px',
-            }}
-          >
-            <AddSceneForm />
-          </div>
           <button
             className="btn btn-large"
             style={{
@@ -67,9 +85,9 @@ class ConnectedApp extends Component {
                 overflowY: 'scroll',
               }}
             >
-              { <ListScenes onSceneClicked={this.handleSceneShowClicked} /> }
-              { currentSceneId && scenes.find(scene => scene.id === currentSceneId) &&
-                <SceneDetails id={currentSceneId} onSceneHide={this.handleSceneShowClicked} />
+              {/* { <ListScenes onSceneClicked={this.handleSceneShowClicked} /> } */}
+              { scenes.length > 0 &&
+                <SceneDetails id={scenes[0].id} onSceneHide={this.handleSceneShowClicked} />
               }
             </div>
           }
