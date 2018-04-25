@@ -31,7 +31,7 @@ class ConnectedApp extends Component {
       <div>
         <nav className="navbar navbar-expand-lg navbar-light bg-light">
           <a className="navbar-brand" href="https://eox.at/" target="_blank">
-            <img src="//aws-catalog.eox.at/EOX_Logo_white.svg" />
+            <img src="images/EOX_Logo_white.svg" />
           </a>
 
           <a className="navbar-brand" style={{color: "white"}}>
