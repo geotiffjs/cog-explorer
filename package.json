@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "webpack-dev-server -d --hot --config webpack.conf.js",
-    "build": "rm dist/* ; webpack --config webpack.conf.js; cp index.html dist/",
+    "build": "rm dist/* ; webpack --config webpack.conf.js; cp -R images/ index.html dist/",
     "deploy": "git subtree push --prefix dist/ origin gh-pages"
   },
   "author": "",
