@@ -18,7 +18,7 @@ const Sigmoidal = connect(null, mapDispatchToProps)(({ step, sceneId, index, edi
           <input
             className="form-control form-control-sm custom-range"
             value={step.contrast}
-            min="0"
+            min="1"
             max="100"
             step="1"
             type="range"

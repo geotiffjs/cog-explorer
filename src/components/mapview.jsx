@@ -14,8 +14,10 @@ import extent from 'ol/extent';
 
 import { fromUrls } from 'geotiff';
 
-import CanvasTileImageSource from '../maputil';
+import CanvasTileImageSource, { ProgressBar } from '../maputil';
 import { renderData } from '../renderutils';
+
+import { tileStartLoading, tileStopLoading } from '../actions/main';
 
 
 proj.setProj4(proj4);
@@ -28,10 +30,16 @@ const mapStateToProps = ({ scenes }) => {
   return { scenes };
 };
 
+const mapDispatchToProps = {
+  tileStartLoading,
+  tileStopLoading,
+};
+
 class MapView extends Component {
   constructor() {
     super();
     this.mapRef = createRef();
+    this.progressBarRef = createRef();
     this.map = new Map({
       layers: [
         new TileLayer({
@@ -41,7 +49,7 @@ class MapView extends Component {
             params: { LAYERS: 's2cloudless' },
             projection: 'EPSG:4326',
             attributions: [
-              '<a xmlns: dct="http://purl.org/dc/terms/" href="https://s2maps.eu" property="dct:title">Sentinel-2 cloudless - https://s2maps.eu</a> by <a xmlns:cc="http://creativecommons.org/ns#" href="https://eox.at" property="cc:attributionName" rel="cc:attributionURL">EOX IT Services GmbH</a> (Contains modified Copernicus Sentinel data 2016 & amp; 2017)',
+              '<a xmlns: dct="http://purl.org/dc/terms/" href="https://s2maps.eu" property="dct:title">Sentinel-2 cloudless - https://s2maps.eu</a> by <a xmlns:cc="http://creativecommons.org/ns#" href="https://eox.at" property="cc:attributionName" rel="cc:attributionURL">EOX IT Services GmbH</a> (Contains modified Copernicus Sentinel data 2016 &amp; 2017)',
             ],
           }),
         }),
@@ -56,10 +64,13 @@ class MapView extends Component {
     this.sceneSources = {};
     this.tileCache = {};
     this.renderedTileCache = {};
+
+    this.progressBar = new ProgressBar();
   }
 
   componentDidMount() {
     this.map.setTarget(this.mapRef.current);
+    this.progressBar.setElement(this.progressBarRef.current);
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -92,6 +103,14 @@ class MapView extends Component {
 
   componentWillUnmount() {
     this.map.setTarget(null);
+  }
+
+  onTileStartLoading() {
+    
+  }
+
+  onTileStopLoading() {
+
   }
 
   async getImage(sceneId, url) {
@@ -176,6 +195,13 @@ class MapView extends Component {
         epsg, this.map.getView().getProjection(),
       ),
     });
+
+    const source = layer.getSource();
+    this.progressBar.setSource(source);
+
+    source.on('tileloadstart', this.props.tileStartLoading);
+    source.on('tileloadend', this.props.tileStopLoading);
+    source.on('tileloaderror', this.props.tileStopLoading);
   }
 
   async renderTile(sceneId, canvas, z, x, y) {
@@ -238,10 +264,12 @@ class MapView extends Component {
 
   render() {
     return (
-      <div ref={this.mapRef} />
+      <div ref={this.mapRef}>
+        <div ref={this.progressBarRef} className="map-progress-bar" />
+      </div>
     );
   }
 }
 
-const ConnectedMapView = connect(mapStateToProps)(MapView);
+const ConnectedMapView = connect(mapStateToProps, mapDispatchToProps)(MapView);
 export default ConnectedMapView;

@@ -18,7 +18,7 @@ class ConnectedSceneDetails extends Component {
   constructor() {
     super();
     this.state = {
-      newStepType: null,
+      newStepType: '',
     };
   }
 
@@ -100,8 +100,8 @@ class ConnectedSceneDetails extends Component {
                 </select>
               </div>
 
-              <button className="btn btn-secondary btn-sm" onClick={() => onSceneHide()}>Hide</button>
-              <button className="btn btn-secondary btn-sm" onClick={() => removeScene(scene.id)}>Remove</button>
+              {/* <button className="btn btn-secondary btn-sm" onClick={() => onSceneHide()}>Hide</button>
+              <button className="btn btn-secondary btn-sm" onClick={() => removeScene(scene.id)}>Remove</button> */}
             </form>
           </div>
           <div className="col-sm">
@@ -120,11 +120,11 @@ class ConnectedSceneDetails extends Component {
               <div className="card-header">Add step</div>
               <div className="card-body">
                 <div className="form-group">
-                  <div
-                    className="input-group"
-                    onChange={event => this.setState({ newStepType: event.target.value })}
-                  >
-                    <select className="custom-select" id="">
+                  <div className="input-group">
+                    <select
+                      className="custom-select"
+                      onChange={event => this.setState({ newStepType: event.target.value })}
+                    >
                       <option disabled="true" selected="selected">---</option>
                       <option value="sigmoidal-contrast">sigmoidal-contrast</option>
                       <option value="gamma">gamma</option>
@@ -134,6 +134,7 @@ class ConnectedSceneDetails extends Component {
                         className="btn btn-outline-secondary"
                         type="button"
                         onClick={() => addStep(scene.id, this.state.newStepType)}
+                        disabled={this.state.newStepType === ''}
                       >Add</button>
                     </div>
                   </div>

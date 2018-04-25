@@ -70,10 +70,10 @@ class ConnectedAddSceneForm extends Component {
     const example1Url = 'https://landsat-pds.s3.amazonaws.com/c1/L8/189/027/LC08_L1TP_189027_20180406_20180417_01_T1/index.html';
     const example2Url = 'https://landsat-pds.s3.amazonaws.com/c1/L8/139/045/LC08_L1TP_139045_20170304_20170316_01_T1/index.html';
     return (
-      <div className="add-scene-comp input-group mb-3">
+      <React.Fragment>
         {/*  */}
         <input
-          className="form-control"
+          className="form-control form-control-sm"
           placeholder="Index URL"
           value={url}
           onChange={this.handleUrlChange}
@@ -90,7 +90,7 @@ class ConnectedAddSceneForm extends Component {
         /> */}
         <div className="input-group-append">
           <button
-            className="btn btn-primary"
+            className="btn btn-primary btn-sm"
             value={url}
             onClick={this.handleAddClick}
             disabled={!this.checkUrl(url) || this.isLoading()}
@@ -99,21 +99,21 @@ class ConnectedAddSceneForm extends Component {
           </button>
 
           <button
-            className="btn btn-secondary"
+            className="btn btn-secondary btn-sm"
             onClick={() => this.props.addSceneFromIndex(example1Url, examplePipeline)}
             disabled={!this.checkUrl(example1Url) || this.isLoading()}
           >
             Load example scene 1
           </button>
           <button
-            className="btn btn-secondary"
+            className="btn btn-secondary btn-sm"
             onClick={() => this.props.addSceneFromIndex(example2Url, examplePipeline)}
             disabled={!this.checkUrl(example2Url) || this.isLoading()}
           >
             Load example scene 2
           </button>
         </div>
-      </div>
+      </React.Fragment>
     );
   }
 }
