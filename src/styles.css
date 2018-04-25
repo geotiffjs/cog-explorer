@@ -1,3 +1,30 @@
+.navbar {
+  background: #373b50 !important;
+  padding-bottom: 0 !important;
+  padding-top: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  height: 50px !important;
+  /* display: block !important; */
+}
+
+.navbar-brand>img {
+    height: 20px !important;
+    width: auto !important;
+}
+
+.map-progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: white;
+  width: 0;
+  transition: width 250ms;
+  z-index: 1000000;
+}
+
+
 .fade-in {
   animation: fadein 2s;
 }
