@@ -45,10 +45,92 @@ export default class CanvasTileImageSource extends TileImageSource {
   async customTileLoadFunction(tile, url, done, error) {
     const { z, x, y } = JSON.parse(url);
     try {
+      this.dispatchEvent('tileloadstart');
       await this.tileRenderFunction(tile.getCanvas(), z, x, y);
       done();
+      this.dispatchEvent('tileloadend');
     } catch (err) {
       error();
+      this.dispatchEvent('tileloaderror');
+    }
+  }
+}
+
+export class ProgressBar {
+  constructor(el, source = null) {
+    this.loaded = 0;
+    this.loading = 0;
+    this.setSource(source);
+
+    this.loadingListener = () => {
+      this.addLoading();
+    };
+
+    this.loadedListener = () => {
+      this.addLoaded();
+    };
+  }
+
+  setSource(source = null) {
+    if (this.source) {
+      this.source.un('tileloadstart', this.loadingListener);
+      this.source.un('tileloadend', this.loadedListener);
+      this.source.un('tileloaderror', this.loadedListener);
+    }
+    this.source = source;
+    if (this.source) {
+      this.source.on('tileloadstart', this.loadingListener);
+      this.source.on('tileloadend', this.loadedListener);
+      this.source.on('tileloaderror', this.loadedListener);
+    }
+  }
+
+  setElement(el = null) {
+    this.el = el;
+  }
+
+  show() {
+    this.el.style.visibility = 'visible';
+  }
+
+  hide() {
+    if (this.loading === this.loaded) {
+      this.el.style.visibility = 'hidden';
+      this.el.style.width = 0;
+    }
+  }
+
+  addLoading() {
+    if (this.loading === 0) {
+      this.show();
+    }
+    ++this.loading;
+    this.update();
+  }
+
+  addLoaded() {
+    setTimeout(() => {
+      ++this.loaded;
+      this.update();
+    }, 100);
+  }
+
+  isLoading() {
+    return this.loading > this.loaded;
+  }
+
+  update() {
+    if (!this.el) {
+      return;
+    }
+    const width = `${(this.loaded / this.loading * 100).toFixed(1)}%`;
+    this.el.style.width = width;
+    if (this.loading === this.loaded) {
+      this.loading = 0;
+      this.loaded = 0;
+      setTimeout(() => {
+        this.hide();
+      }, 500);
     }
   }
 }
