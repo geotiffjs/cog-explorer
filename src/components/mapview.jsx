@@ -56,8 +56,10 @@ class MapView extends Component {
       ],
       view: new View({
         projection: 'EPSG:4326',
-        center: [0, 0],
+        center: [16.37, 48.21],
         zoom: 5,
+        maxZoom: 13,
+        minZoom: 3,
       }),
     });
     this.sceneLayers = {};
