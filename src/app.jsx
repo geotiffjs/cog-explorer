@@ -81,7 +81,7 @@ class ConnectedApp extends Component {
             onClick={() => this.setState({ showList: !showList })}
             disabled={scenes.length === 0}
           >
-            <i className="fas fa-bars" />
+            <i className="fas fa-wrench" />
           </button>
           {
             showList && scenes.length > 0 && <div
@@ -90,7 +90,7 @@ class ConnectedApp extends Component {
                 position: 'absolute',
                 top: '10px',
                 right: '60px',
-                width: '50%',
+                maxWidth: 'calc(100% - 120px)',
                 maxHeight: 'calc(100% - 20px)',
                 overflowY: 'scroll',
                 zIndex: 100,
