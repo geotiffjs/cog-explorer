@@ -39,6 +39,16 @@ class ConnectedApp extends Component {
               <a className="navbar-brand" style={{color: "white"}}>
                 COG-Explorer
               </a>
+              <i
+                className="navbar-brand fas fa-spin fa-cog text-light"
+                style={{
+                  position: 'absolute',
+                  top: '10px',
+                  right: '50px',
+                  visibility: (isLoading || tilesLoading > 0) ? 'visible' : 'visible',
+                  zIndex: 99,
+                }}
+              />
             </div>
           </div>
         </nav>
@@ -48,6 +58,7 @@ class ConnectedApp extends Component {
             position: 'absolute',
             top: '60px',
             right: '10px',
+            maxWidth: 'calc(100% - 58px)',
             zIndex: 50,
           }}
         >
@@ -55,15 +66,6 @@ class ConnectedApp extends Component {
             <AddSceneForm />
             {/* <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" />
             <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button> */}
-            <i
-              className="fas fa-spin fa-cog text-light"
-              style={{
-                position: 'absolute',
-                right: '60px',
-                // display: this.isLoading() ? 'none' : 'flex',
-                visibility: (isLoading || tilesLoading > 0) ? 'visible' : 'hidden',
-              }}
-            />
           </form>
         </div>
 
@@ -90,7 +92,7 @@ class ConnectedApp extends Component {
                 position: 'absolute',
                 top: '10px',
                 right: '60px',
-                maxWidth: 'calc(100% - 120px)',
+                maxWidth: 'calc(100% - 108px)',
                 maxHeight: 'calc(100% - 20px)',
                 overflowY: 'scroll',
                 zIndex: 100,
