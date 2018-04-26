@@ -30,32 +30,42 @@ class ConnectedApp extends Component {
     return (
       <div>
         <nav className="navbar navbar-expand-lg navbar-light bg-light">
-          <a className="navbar-brand" href="https://eox.at/" target="_blank">
-            <img src="images/EOX_Logo_white.svg" />
-          </a>
+          <div class="container-fluid">
+            <div class="navbar-header">
+              <a className="navbar-brand" href="https://eox.at/" target="_blank">
+                <img src="images/EOX_Logo_white.svg" />
+              </a>
 
-          <a className="navbar-brand" style={{color: "white"}}>
-            COG-Explorer
-          </a>
-
-          <div className="collapse navbar-collapse">
-            <form className="form-inline my-2 my-lg-0">
-              <AddSceneForm />
-              {/* <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" />
-              <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button> */}
-              <i
-                className="fas fa-spin fa-cog text-light"
-                style={{
-                  position: 'absolute',
-                  right: '60px',
-                  // display: this.isLoading() ? 'none' : 'flex',
-                  visibility: (isLoading || tilesLoading > 0) ? 'visible' : 'hidden',
-                }}
-              />
-            </form>
+              <a className="navbar-brand" style={{color: "white"}}>
+                COG-Explorer
+              </a>
+            </div>
           </div>
         </nav>
 
+        <div
+          style={{
+            position: 'absolute',
+            top: '60px',
+            right: '10px',
+            zIndex: 50,
+          }}
+        >
+          <form className="form-inline my-2 my-lg-0">
+            <AddSceneForm />
+            {/* <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" />
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button> */}
+            <i
+              className="fas fa-spin fa-cog text-light"
+              style={{
+                position: 'absolute',
+                right: '60px',
+                // display: this.isLoading() ? 'none' : 'flex',
+                visibility: (isLoading || tilesLoading > 0) ? 'visible' : 'hidden',
+              }}
+            />
+          </form>
+        </div>
 
         <div style={{ height: 'calc(100% - 50px)' }}>
           <MapView />
@@ -83,6 +93,7 @@ class ConnectedApp extends Component {
                 width: '50%',
                 maxHeight: 'calc(100% - 20px)',
                 overflowY: 'scroll',
+                zIndex: 100,
               }}
             >
               {/* { <ListScenes onSceneClicked={this.handleSceneShowClicked} /> } */}

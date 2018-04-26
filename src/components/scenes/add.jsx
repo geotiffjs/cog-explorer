@@ -95,7 +95,7 @@ class ConnectedAddSceneForm extends Component {
             onClick={this.handleAddClick}
             disabled={!this.checkUrl(url) || this.isLoading()}
           >
-            Load URL
+            Load
           </button>
 
           <button
@@ -103,14 +103,14 @@ class ConnectedAddSceneForm extends Component {
             onClick={() => this.props.addSceneFromIndex(example1Url, examplePipeline)}
             disabled={!this.checkUrl(example1Url) || this.isLoading()}
           >
-            Load example scene 1
+            Load example 1
           </button>
           <button
             className="btn btn-secondary btn-sm"
             onClick={() => this.props.addSceneFromIndex(example2Url, examplePipeline)}
             disabled={!this.checkUrl(example2Url) || this.isLoading()}
           >
-            Load example scene 2
+            Load example 2
           </button>
         </div>
       </React.Fragment>
