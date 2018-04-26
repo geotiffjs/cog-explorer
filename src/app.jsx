@@ -45,7 +45,7 @@ class ConnectedApp extends Component {
                   position: 'absolute',
                   top: '10px',
                   right: '50px',
-                  visibility: (isLoading || tilesLoading > 0) ? 'visible' : 'visible',
+                  visibility: (isLoading || tilesLoading > 0) ? 'visible' : 'hidden',
                   zIndex: 99,
                 }}
               />
