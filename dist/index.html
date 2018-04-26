@@ -23,30 +23,37 @@
               Welcome to the COG explorer!
             </p>
             <p>
-              This app allows you to inspect single scenes of the Landsat-8 archive on Amazon S3.
-              Either copy the URL of the <code>index.html</code> of the scene you want to
-              investigate. Alternatively, we have already prepared two scenes: just use the two
-              example buttons.
+              This app allows you to visually inspect individual scenes from the Landsat-8 archive on Amazon S3.
+              Either copy the URL to the <code>index.html</code> of the scene you want to
+              investigate in the "Index URL" field and hit "Load URL", or alternatively, show
+              one of the two preselected scenes using the example buttons. Note, while optimizing
+              the data access by utilizing the COG features to only retrieve necessary parts of the data this
+              app downloads the actual UInt16 raster values which uses quite some download bandwidth.
             </p>
             <p>
-              The selected scene will be displayed on the map, which you can zoom and pan as you
-              like. Additionally, you can adjust how the scene is displayed by clicking on the
-              <button class="btn btn-sm"><i class="fas fa-bars"></i></button> icon.
+              The selected scene is displayed on the map, which you can zoom and pan as you
+              like. It is visualized as natural color composite with some default processing
+              steps applied. Using the <button class="btn btn-sm"><i class="fas fa-bars"></i></button>
+              button you can adjust the visualization by selecting the bands to use and processing
+              steps to apply.
             </p>
             <p>
-              In the options menu, you can specify what bands you want to use as the red, green
-              and blue channels (or use one of the already prepared scenarios) and specify what
-              image processing steps shall be applied (currently contrast enhancement and gamma
-              are implemented).
+              For the band selection, either define red, green, and blue channels
+              individually or use one of the predefined scenarios. As image processing steps
+              currently sigmoidal contrast enhancement and gamma can be applied on all or
+              individual channels.
             </p>
             <p>
-              <small>
-                This application uses the <a href="#">geotiff.js</a> library to read the actual
-                raster values from the band files (or the overviews, depending on the maps
-                zoomlevel). Taking advantage of the optimized structure of COGs, only the parts
-                of the file that are actually required will be requested, drastically reducing
-                the overall amount of data transmitted from the archive.
-              </small>
+              This app uses the <a href="https://github.com/geotiffjs/geotiff.js">geotiff.js</a>
+              library to read the actual UInt16 raster values from the band files (or the overviews, depending on the maps
+              zoomlevel). Taking advantage of the optimized structure of COGs, only the parts
+              of the file that are actually required are requested, drastically reducing
+              the overall amount of data transmitted from the archive.
+            </p>
+            <p>
+              Please keep in mind that at the moment this app is a proof-of-concept demonstration
+              with some room for improvement. Nevertheless we're looking forward to hear your feedback.
+              Also let us know if you want to help in any way.
             </p>
             <p>
               If you want to know more about COGs please refer to <a href="http://www.cogeo.org/">their introduction page</a>.
@@ -65,7 +72,7 @@
       </div>
     </div>
 
-    <button class="btn" data-toggle="modal" data-target="#initModal" style="position: absolute; bottom: 10px; left: 10px; z-index: 10000;">
+    <button class="btn" data-toggle="modal" data-target="#initModal" style="position: absolute; bottom: 10px; left: 10px; z-index: 99;">
       <i class="fas fa-question"></i>
     </button>
 
