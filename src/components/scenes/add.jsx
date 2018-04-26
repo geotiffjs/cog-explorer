@@ -67,7 +67,8 @@ class ConnectedAddSceneForm extends Component {
     const { url } = this.state;
 
     // const example1Url = 'https://landsat-pds.s3.amazonaws.com/L8/139/045/LC81390452014295LGN00/index.html';
-    const example1Url = 'https://landsat-pds.s3.amazonaws.com/c1/L8/189/027/LC08_L1TP_189027_20180406_20180417_01_T1/index.html';
+    // const example1Url = 'https://landsat-pds.s3.amazonaws.com/c1/L8/189/027/LC08_L1TP_189027_20180406_20180417_01_T1/index.html';
+    const example1Url = 'https://landsat-pds.s3.amazonaws.com/c1/L8/189/027/LC08_L1TP_189027_20170403_20170414_01_T1/index.html';
     const example2Url = 'https://landsat-pds.s3.amazonaws.com/c1/L8/139/045/LC08_L1TP_139045_20170304_20170316_01_T1/index.html';
     return (
       <React.Fragment>
