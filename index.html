@@ -25,10 +25,11 @@
             <p>
               This app allows you to visually inspect individual scenes from the Landsat-8 archive on Amazon S3.
               Either copy the URL to the <code>index.html</code> of the scene you want to
-              investigate in the "Index URL" field and hit "Load URL", or alternatively, show
+              investigate in the "Index URL" field and hit "Load", or alternatively, show
               one of the two preselected scenes using the example buttons. Note, while optimizing
               the data access by utilizing the COG features to only retrieve necessary parts of the data this
               app downloads the actual UInt16 raster values which uses quite some download bandwidth.
+              Additionally the data is download in its original projection and re-projected on the fly.
             </p>
             <p>
               The selected scene is displayed on the map, which you can zoom and pan as you
