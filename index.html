@@ -88,7 +88,10 @@
 
     <script type="text/javascript">
       $(window).on('load', function () {
-        $('#initModal').modal('show');
+        if (localStorage && localStorage.getItem('has-shown-welcome') !== 'true') {
+          $('#initModal').modal('show');
+          localStorage.setItem('has-shown-welcome', 'true');
+        }        
       });
     </script>
   </body>
