@@ -17,7 +17,7 @@ import { fromUrls } from 'geotiff';
 import CanvasTileImageSource, { ProgressBar } from '../maputil';
 import { renderData } from '../renderutils';
 
-import { tileStartLoading, tileStopLoading } from '../actions/main';
+import { tileStartLoading, tileStopLoading, setPosition } from '../actions/main';
 
 
 proj.setProj4(proj4);
@@ -26,13 +26,14 @@ async function all(promises) {
   return await Promise.all(promises);
 }
 
-const mapStateToProps = ({ scenes }) => {
-  return { scenes };
+const mapStateToProps = ({ scenes, main }) => {
+  return { scenes, longitude: main.longitude, latitude: main.latitude, zoom: main.zoom };
 };
 
 const mapDispatchToProps = {
   tileStartLoading,
   tileStopLoading,
+  setPosition,
 };
 
 class MapView extends Component {
@@ -40,6 +41,7 @@ class MapView extends Component {
     super();
     this.mapRef = createRef();
     this.progressBarRef = createRef();
+
     this.map = new Map({
       layers: [
         new TileLayer({
@@ -56,7 +58,7 @@ class MapView extends Component {
       ],
       view: new View({
         projection: 'EPSG:4326',
-        center: [16.37, 48.21],
+        center: [0, 0],
         zoom: 5,
         maxZoom: 13,
         minZoom: 3,
@@ -68,6 +70,11 @@ class MapView extends Component {
     this.renderedTileCache = {};
 
     this.progressBar = new ProgressBar();
+
+    this.map.on('moveend', () => {
+      const view = this.map.getView();
+      this.props.setPosition(...view.getCenter(), view.getZoom());
+    });
   }
 
   componentDidMount() {
@@ -89,16 +96,18 @@ class MapView extends Component {
     } else {
       const changedScene = scenes.find((scene, index) => scene !== prevScenes[index]);
 
-      delete this.renderedTileCache[changedScene.id];
+      if (changedScene) {
+        delete this.renderedTileCache[changedScene.id];
 
-      const layer = this.sceneLayers[changedScene.id];
-      if (layer) {
-        const source = layer.getSource();
-        // refresh the source cache
-        source.setTileUrlFunction(
-          source.getTileUrlFunction(),
-          (new Date()).getTime(),
-        );
+        const layer = this.sceneLayers[changedScene.id];
+        if (layer) {
+          const source = layer.getSource();
+          // refresh the source cache
+          source.setTileUrlFunction(
+            source.getTileUrlFunction(),
+            (new Date()).getTime(),
+          );
+        }
       }
     }
   }
@@ -265,6 +274,9 @@ class MapView extends Component {
   }
 
   render() {
+    const { longitude, latitude, zoom } = this.props;
+    this.map.getView().setCenter([longitude, latitude]);
+    this.map.getView().setZoom(zoom);
     return (
       <div ref={this.mapRef}>
         <div ref={this.progressBarRef} className="map-progress-bar" />

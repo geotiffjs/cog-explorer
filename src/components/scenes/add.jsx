@@ -19,22 +19,6 @@ const mapDispatchToProps = (dispatch) => {
   };
 };
 
-const examplePipeline = [
-  {
-    operation: 'sigmoidal-contrast',
-    contrast: 50,
-    bias: 0.16,
-  }, {
-    operation: 'gamma',
-    bands: 'red',
-    value: 1.03,
-  }, {
-    operation: 'gamma',
-    bands: 'blue',
-    value: 0.925,
-  },
-];
-
 class ConnectedAddSceneForm extends Component {
   constructor() {
     super();
@@ -52,7 +36,7 @@ class ConnectedAddSceneForm extends Component {
   }
 
   handleAddClick() {
-    this.props.addSceneFromIndex(this.state.url, examplePipeline);
+    this.props.addSceneFromIndex(this.state.url);
   }
 
   checkUrl(url) {
@@ -101,14 +85,14 @@ class ConnectedAddSceneForm extends Component {
 
           <button
             className="btn btn-secondary btn-sm"
-            onClick={() => this.props.addSceneFromIndex(example1Url, examplePipeline)}
+            onClick={() => this.props.addSceneFromIndex(example1Url)}
             disabled={!this.checkUrl(example1Url) || this.isLoading()}
           >
             Load example 1
           </button>
           <button
             className="btn btn-secondary btn-sm"
-            onClick={() => this.props.addSceneFromIndex(example2Url, examplePipeline)}
+            onClick={() => this.props.addSceneFromIndex(example2Url)}
             disabled={!this.checkUrl(example2Url) || this.isLoading()}
           >
             Load example 2

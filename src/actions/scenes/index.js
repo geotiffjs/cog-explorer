@@ -36,7 +36,23 @@ export function removeScene(url) {
   };
 }
 
-export function addSceneFromIndex(url, pipeline = []) {
+const examplePipeline = [
+  {
+    operation: 'sigmoidal-contrast',
+    contrast: 50,
+    bias: 0.16,
+  }, {
+    operation: 'gamma',
+    bands: 'red',
+    value: 1.03,
+  }, {
+    operation: 'gamma',
+    bands: 'blue',
+    value: 0.925,
+  },
+];
+
+export function addSceneFromIndex(url, pipeline = examplePipeline) {
   return async (dispatch, getState) => {
     const { scenes } = getState();
 
@@ -48,8 +64,9 @@ export function addSceneFromIndex(url, pipeline = []) {
     dispatch(startLoading());
     try {
       const relUrl = url.endsWith('/') ? url : url.substring(0, url.lastIndexOf('/'));
-      const response = await fetch(url);
-      const doc = (new DOMParser()).parseFromString(await response.text(), 'text/html');
+      const response = await fetch(url, { });
+      const content = await response.text();
+      const doc = (new DOMParser()).parseFromString(content, 'text/html');
       const files = Array.from(doc.querySelectorAll('a[href]'))
         .map(a => a.getAttribute('href'))
         .map(file => urlJoin(relUrl, file));

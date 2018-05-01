@@ -26,19 +26,22 @@ class ConnectedApp extends Component {
 
   render() {
     const { currentSceneId, showList } = this.state;
-    const { scenes, isLoading, tilesLoading } = this.props;
+    const { scenes, isLoading, tilesLoading, longitude, latitude, zoom } = this.props;
+
+    window.location.hash = `#long=${longitude.toFixed(3)}&lat=${latitude.toFixed(3)}&zoom=${Math.round(zoom)}&scene=${scenes.length ? scenes[0].id : ''}`;
+
     return (
       <div>
         <nav className="navbar navbar-expand-lg navbar-light bg-light">
-          <div class="container-fluid">
-            <div class="navbar-header">
-              <a className="navbar-brand" href="https://eox.at/" target="_blank">
-                <img src="images/EOX_Logo_white.svg" />
+          <div className="container-fluid">
+            <div className="navbar-header">
+              <a className="navbar-brand" href="https://eox.at/" target="_blank" rel="noopener noreferrer">
+                <img alt="" src="images/EOX_Logo_white.svg" />
               </a>
 
-              <a className="navbar-brand" style={{color: "white"}}>
+              <span className="navbar-brand" style={{ color: 'white' }}>
                 COG-Explorer
-              </a>
+              </span>
               <i
                 className="navbar-brand fas fa-spin fa-cog text-light"
                 style={{
@@ -86,7 +89,8 @@ class ConnectedApp extends Component {
             <i className="fas fa-wrench" />
           </button>
           {
-            showList && scenes.length > 0 && <div
+            showList && scenes.length > 0 &&
+            <div
               className="card card-body"
               style={{
                 position: 'absolute',
