@@ -12,7 +12,7 @@ import TileGrid from 'ol/tilegrid/tilegrid';
 import proj from 'ol/proj';
 import extent from 'ol/extent';
 
-import { fromUrls } from 'geotiff';
+import { fromUrl, fromUrls } from 'geotiff';
 
 import CanvasTileImageSource, { ProgressBar } from '../maputil';
 import { renderData } from '../renderutils';
@@ -60,8 +60,9 @@ class MapView extends Component {
         projection: 'EPSG:4326',
         center: [0, 0],
         zoom: 5,
-        maxZoom: 13,
+        // maxZoom: 13,
         minZoom: 3,
+        maxZoom: 23,
       }),
     });
     this.sceneLayers = {};
@@ -116,25 +117,21 @@ class MapView extends Component {
     this.map.setTarget(null);
   }
 
-  onTileStartLoading() {
-    
-  }
-
-  onTileStopLoading() {
-
-  }
-
-  async getImage(sceneId, url) {
+  async getImage(sceneId, url, hasOvr = true) {
     if (!this.sceneSources[sceneId]) {
       this.sceneSources[sceneId] = {};
     }
     if (!this.sceneSources[sceneId][url]) {
-      this.sceneSources[sceneId][url] = fromUrls(url, [`${url}.ovr`]);
+      if (hasOvr) {
+        this.sceneSources[sceneId][url] = fromUrls(url, [`${url}.ovr`]);
+      } else {
+        this.sceneSources[sceneId][url] = fromUrl(url);
+      }
     }
     return this.sceneSources[sceneId][url];
   }
 
-  async getRawTile(tiff, url, z, x, y) {
+  async getRawTile(tiff, url, z, x, y, isRGB = false) {
     const id = `${url}-${z}-${x}-${y}`;
     if (!this.tileCache[id]) {
       const image = await tiff.getImage(await tiff.getImageCount() - z - 1);
@@ -146,9 +143,15 @@ class MapView extends Component {
         image.getHeight() - (y * image.getTileHeight()),
       ];
 
-      this.tileCache[id] = image.readRasters({
-        window: wnd,
-      });
+      if (isRGB) {
+        this.tileCache[id] = image.readRGB({
+          window: wnd,
+        });
+      } else {
+        this.tileCache[id] = image.readRasters({
+          window: wnd,
+        });
+      }
     }
 
     return this.tileCache[id];
@@ -156,11 +159,11 @@ class MapView extends Component {
 
   async addSceneLayer(scene) {
     this.sceneSources[scene.id] = {
-      [scene.redBand]: this.getImage(scene.id, scene.bands.get(scene.redBand)),
-      [scene.greenBand]: this.getImage(scene.id, scene.bands.get(scene.greenBand)),
-      [scene.blueBand]: this.getImage(scene.id, scene.bands.get(scene.blueBand)),
+      [scene.redBand]: this.getImage(scene.id, scene.bands.get(scene.redBand), scene.hasOvr),
+      [scene.greenBand]: this.getImage(scene.id, scene.bands.get(scene.greenBand), scene.hasOvr),
+      [scene.blueBand]: this.getImage(scene.id, scene.bands.get(scene.blueBand), scene.hasOvr),
     };
-    const tiff = await this.getImage(scene.id, scene.bands.get(scene.redBand));
+    const tiff = await this.getImage(scene.id, scene.bands.get(scene.redBand), scene.hasOvr);
 
     // calculate tilegrid from the 'red' image
     const images = [];
@@ -235,42 +238,53 @@ class MapView extends Component {
       return;
     }
 
-    const [redImage, greenImage, blueImage] = await all([
-      this.getImage(sceneId, scene.bands.get(scene.redBand)),
-      this.getImage(sceneId, scene.bands.get(scene.greenBand)),
-      this.getImage(sceneId, scene.bands.get(scene.blueBand)),
-    ]);
+    if (scene.isRGB && scene.isSingle) {
+      const tiff = await this.getImage(sceneId, scene.bands.get(scene.redBand), scene.hasOvr);
+      console.time(`parsing ${sceneId + z + x + y}`);
+      const data = await this.getRawTile(tiff, tiff.baseUrl, z, x, y, true);
+      console.timeEnd(`parsing ${sceneId + z + x + y}`);
+      const { width, height } = data;
+      canvas.width = width;
+      canvas.height = height;
 
-    redImage.baseUrl = scene.bands.get(scene.redBand);
-    greenImage.baseUrl = scene.bands.get(scene.greenBand);
-    blueImage.baseUrl = scene.bands.get(scene.blueBand);
+      console.time(`rendering ${sceneId + z + x + y}`);
+      const ctx = canvas.getContext('2d');
+      const imageData = ctx.createImageData(width, height);
+      const out = imageData.data;
+      let o = 0;
+      for (let i = 0; i < data.length; i += 3) {
+        out[o] = data[i];
+        out[o + 1] = data[i + 1];
+        out[o + 2] = data[i + 2];
+        out[o + 3] = data[i] || data[i + 1] || data[i + 2] ? 255 : 0;
+        o += 4;
+      }
+      ctx.putImageData(imageData, 0, 0);
+      console.timeEnd(`rendering ${sceneId + z + x + y}`);
+    } else {
+      const [redImage, greenImage, blueImage] = await all([
+        this.getImage(sceneId, scene.bands.get(scene.redBand), scene.hasOvr),
+        this.getImage(sceneId, scene.bands.get(scene.greenBand), scene.hasOvr),
+        this.getImage(sceneId, scene.bands.get(scene.blueBand), scene.hasOvr),
+      ]);
 
-    const [redArr, greenArr, blueArr] = await all([redImage, greenImage, blueImage].map(
-      tiff => this.getRawTile(tiff, tiff.baseUrl, z, x, y),
-    ));
+      redImage.baseUrl = scene.bands.get(scene.redBand);
+      greenImage.baseUrl = scene.bands.get(scene.greenBand);
+      blueImage.baseUrl = scene.bands.get(scene.blueBand);
 
-    const { width, height } = redArr;
-    canvas.width = width;
-    canvas.height = height;
+      const [redArr, greenArr, blueArr] = await all([redImage, greenImage, blueImage].map(
+        tiff => this.getRawTile(tiff, tiff.baseUrl, z, x, y),
+      ));
 
-    console.time(`rendering ${sceneId + z + x + y}`);
-    const [red, green, blue] = [redArr, greenArr, blueArr].map(arr => arr[0]);
-    renderData(canvas, scene.pipeline, width, height, red, green, blue);
-    console.timeEnd(`rendering ${sceneId + z + x + y}`);
+      const { width, height } = redArr;
+      canvas.width = width;
+      canvas.height = height;
 
-    // const ctx = canvas.getContext('2d');
-    // const id = ctx.createImageData(width, height);
-    // const o = id.data;
-
-    // console.time(`blitting ${sceneId + z + x + y}`);
-    // for (let i = 0; i < id.data.length / 4; ++i) {
-    //   o[i * 4] = red[i];
-    //   o[(i * 4) + 1] = green[i];
-    //   o[(i * 4) + 2] = blue[i];
-    //   o[(i * 4) + 3] = (!red[i] && !green[i] && !blue[i]) ? 0 : 255;
-    // }
-    // ctx.putImageData(id, 0, 0);
-    // console.timeEnd(`blitting ${sceneId + z + x + y}`);
+      console.time(`rendering ${sceneId + z + x + y}`);
+      const [red, green, blue] = [redArr, greenArr, blueArr].map(arr => arr[0]);
+      renderData(canvas, scene.pipeline, width, height, red, green, blue);
+      console.timeEnd(`rendering ${sceneId + z + x + y}`);
+    }
   }
 
   render() {

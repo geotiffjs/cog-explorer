@@ -1,4 +1,5 @@
 import urlJoin from 'url-join';
+import { fromUrl } from 'geotiff';
 
 import types from '../../types';
 import { startLoading, stopLoading } from '../main';
@@ -9,7 +10,7 @@ const {
   SCENE_PIPELINE_EDIT_STEP,
 } = types;
 
-export function addScene(url, bands, redBand, greenBand, blueBand, pipeline = []) {
+export function addScene(url, bands, redBand, greenBand, blueBand, isSingle, hasOvr, isRGB, pipeline = []) {
   return {
     type: SCENE_ADD,
     sceneId: url,
@@ -17,6 +18,9 @@ export function addScene(url, bands, redBand, greenBand, blueBand, pipeline = []
     redBand,
     greenBand,
     blueBand,
+    isSingle,
+    hasOvr,
+    isRGB,
     pipeline,
   };
 }
@@ -63,26 +67,61 @@ export function addSceneFromIndex(url, pipeline = examplePipeline) {
 
     dispatch(startLoading());
     try {
-      const relUrl = url.endsWith('/') ? url : url.substring(0, url.lastIndexOf('/'));
-      const response = await fetch(url, { });
-      const content = await response.text();
-      const doc = (new DOMParser()).parseFromString(content, 'text/html');
-      const files = Array.from(doc.querySelectorAll('a[href]'))
-        .map(a => a.getAttribute('href'))
-        .map(file => urlJoin(relUrl, file));
+      // find out type of data the URL is pointing to
+      const headerResponse = await fetch(url, { method: 'HEAD' });
 
-      const red = 4;
-      const green = 3;
-      const blue = 2;
-      const bands = new Map(
-        files
-          .filter(file => /LC0?8.*B[0-9]+.TIF$/.test(file))
-          .map(file => [parseInt(/.*B([0-9]+).TIF/.exec(file)[1], 10), file]),
-      );
+      if (!headerResponse.ok) {
+        throw new Error(`Failed to fetch ${url}`);
+      }
 
-      // TODO unset loading
-      dispatch(addScene(url, bands, red, green, blue, pipeline));
+      const contentType = headerResponse.headers.get('content-type');
+
+      if (contentType === 'text/html') {
+        const relUrl = url.endsWith('/') ? url : url.substring(0, url.lastIndexOf('/'));
+        const response = await fetch(url, {});
+        const content = await response.text();
+        const doc = (new DOMParser()).parseFromString(content, 'text/html');
+        const files = Array.from(doc.querySelectorAll('a[href]'))
+          .map(a => a.getAttribute('href'))
+          .map(file => urlJoin(relUrl, file));
+
+        const red = 4;
+        const green = 3;
+        const blue = 2;
+        const bands = new Map(
+          files
+            .filter(file => /LC0?8.*B[0-9]+.TIF$/.test(file))
+            .map(file => [parseInt(/.*B([0-9]+).TIF/.exec(file)[1], 10), file]),
+        );
+
+        dispatch(addScene(url, bands, red, green, blue, false, true, false, pipeline));
+      } else if (contentType === 'image/tiff') {
+        const tiff = await fromUrl(url);
+        const image = await tiff.getImage();
+
+        const samples = image.getSamplesPerPixel();
+        const bands = new Map();
+        for (let i = 0; i < samples; ++i) {
+          bands.set(i, url);
+        }
+
+        let [red, green, blue] = [];
+        if (samples !== 3) {
+          red = 0;
+          green = 0;
+          blue = 0;
+        } else {
+          red = 0;
+          green = 1;
+          blue = 2;
+        }
+
+        const isRGB = (typeof image.fileDirectory.PhotometricInterpretation !== 'undefined');
+
+        dispatch(addScene(url, bands, red, green, blue, true, false, isRGB, pipeline));
+      }
     } catch (e) {
+      // TODO: set error somewhere to present to user
       console.error(e);
     } finally {
       dispatch(stopLoading());

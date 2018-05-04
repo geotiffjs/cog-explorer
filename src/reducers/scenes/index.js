@@ -52,6 +52,9 @@ export default function (state = initialState, action) {
           redBand: action.redBand,
           greenBand: action.greenBand,
           blueBand: action.blueBand,
+          isSingle: action.isSingle,
+          hasOvr: action.hasOvr,
+          isRGB: action.isRGB,
           pipeline: action.pipeline,
         },
       ];
