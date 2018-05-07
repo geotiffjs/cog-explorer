@@ -12,7 +12,7 @@ import TileGrid from 'ol/tilegrid/tilegrid';
 import proj from 'ol/proj';
 import extent from 'ol/extent';
 
-import { fromUrl, fromUrls } from 'geotiff';
+import { fromUrl, fromUrls, Pool } from 'geotiff';
 
 import CanvasTileImageSource, { ProgressBar } from '../maputil';
 import { renderData } from '../renderutils';
@@ -76,6 +76,8 @@ class MapView extends Component {
       const view = this.map.getView();
       this.props.setPosition(...view.getCenter(), view.getZoom());
     });
+
+    this.pool = new Pool();
   }
 
   componentDidMount() {
@@ -136,6 +138,9 @@ class MapView extends Component {
     if (!this.tileCache[id]) {
       const image = await tiff.getImage(await tiff.getImageCount() - z - 1);
 
+      const poolSize = image.fileDirectory.Compression === 5 ? 4 : null;
+      // const poolSize = null;
+
       const wnd = [
         x * image.getTileWidth(),
         image.getHeight() - ((y + 1) * image.getTileHeight()),
@@ -146,10 +151,12 @@ class MapView extends Component {
       if (isRGB) {
         this.tileCache[id] = image.readRGB({
           window: wnd,
+          pool: image.fileDirectory.Compression === 5 ? this.pool : null,
         });
       } else {
         this.tileCache[id] = image.readRasters({
           window: wnd,
+          pool: image.fileDirectory.Compression === 5 ? this.pool : null,
         });
       }
     }
@@ -252,10 +259,16 @@ class MapView extends Component {
       const imageData = ctx.createImageData(width, height);
       const out = imageData.data;
       let o = 0;
+
+      let shift = 0;
+      if (data instanceof Uint16Array) {
+        shift = 8;
+      }
+
       for (let i = 0; i < data.length; i += 3) {
-        out[o] = data[i];
-        out[o + 1] = data[i + 1];
-        out[o + 2] = data[i + 2];
+        out[o] = data[i] >> shift;
+        out[o + 1] = data[i + 1] >> shift;
+        out[o + 2] = data[i + 2] >> shift;
         out[o + 3] = data[i] || data[i + 1] || data[i + 2] ? 255 : 0;
         o += 4;
       }
