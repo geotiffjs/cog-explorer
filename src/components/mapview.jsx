@@ -135,6 +135,7 @@ class MapView extends Component {
 
   async getRawTile(tiff, url, z, x, y, isRGB = false) {
     const id = `${url}-${z}-${x}-${y}`;
+
     if (!this.tileCache[id]) {
       const image = await tiff.getImage(await tiff.getImageCount() - z - 1);
 
@@ -247,6 +248,7 @@ class MapView extends Component {
 
     if (scene.isRGB && scene.isSingle) {
       const tiff = await this.getImage(sceneId, scene.bands.get(scene.redBand), scene.hasOvr);
+      tiff.baseUrl = sceneId;
       console.time(`parsing ${sceneId + z + x + y}`);
       const data = await this.getRawTile(tiff, tiff.baseUrl, z, x, y, true);
       console.timeEnd(`parsing ${sceneId + z + x + y}`);
@@ -255,24 +257,26 @@ class MapView extends Component {
       canvas.height = height;
 
       console.time(`rendering ${sceneId + z + x + y}`);
-      const ctx = canvas.getContext('2d');
-      const imageData = ctx.createImageData(width, height);
-      const out = imageData.data;
-      let o = 0;
+      // const ctx = canvas.getContext('2d');
+      // const imageData = ctx.createImageData(width, height);
+      // const out = imageData.data;
+      // let o = 0;
 
-      let shift = 0;
-      if (data instanceof Uint16Array) {
-        shift = 8;
-      }
+      // let shift = 0;
+      // if (data instanceof Uint16Array) {
+      //   shift = 8;
+      // }
 
-      for (let i = 0; i < data.length; i += 3) {
-        out[o] = data[i] >> shift;
-        out[o + 1] = data[i + 1] >> shift;
-        out[o + 2] = data[i + 2] >> shift;
-        out[o + 3] = data[i] || data[i + 1] || data[i + 2] ? 255 : 0;
-        o += 4;
-      }
-      ctx.putImageData(imageData, 0, 0);
+      // for (let i = 0; i < data.length; i += 3) {
+      //   out[o] = data[i] >> shift;
+      //   out[o + 1] = data[i + 1] >> shift;
+      //   out[o + 2] = data[i + 2] >> shift;
+      //   out[o + 3] = data[i] || data[i + 1] || data[i + 2] ? 255 : 0;
+      //   o += 4;
+      // }
+      // ctx.putImageData(imageData, 0, 0);
+
+      renderData(canvas, scene.pipeline, width, height, data, null, null, true);
       console.timeEnd(`rendering ${sceneId + z + x + y}`);
     } else {
       const [redImage, greenImage, blueImage] = await all([
@@ -295,7 +299,7 @@ class MapView extends Component {
 
       console.time(`rendering ${sceneId + z + x + y}`);
       const [red, green, blue] = [redArr, greenArr, blueArr].map(arr => arr[0]);
-      renderData(canvas, scene.pipeline, width, height, red, green, blue);
+      renderData(canvas, scene.pipeline, width, height, red, green, blue, false);
       console.timeEnd(`rendering ${sceneId + z + x + y}`);
     }
   }
