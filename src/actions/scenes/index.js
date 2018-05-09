@@ -10,6 +10,12 @@ const {
   SCENE_PIPELINE_EDIT_STEP, SET_ERROR,
 } = types;
 
+
+const urlToAttribution = {
+  'https://s3-us-west-2.amazonaws.com/planet-disaster-data/hurricane-harvey/SkySat_Freeport_s03_20170831T162740Z3.tif': 'cc-by-sa, downloaded from https://www.planet.com/disaster/hurricane-harvey-2017-08-28/',
+};
+
+
 export function addScene(url, bands, redBand, greenBand, blueBand, isSingle, hasOvr, isRGB, attribution, pipeline = []) {
   return {
     type: SCENE_ADD,
@@ -21,7 +27,7 @@ export function addScene(url, bands, redBand, greenBand, blueBand, isSingle, has
     isSingle,
     hasOvr,
     isRGB,
-    attribution,
+    attribution: attribution || urlToAttribution[url],
     pipeline,
   };
 }
