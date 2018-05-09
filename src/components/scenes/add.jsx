@@ -54,49 +54,73 @@ class ConnectedAddSceneForm extends Component {
     // const example1Url = 'https://landsat-pds.s3.amazonaws.com/c1/L8/189/027/LC08_L1TP_189027_20180406_20180417_01_T1/index.html';
     const example1Url = 'https://landsat-pds.s3.amazonaws.com/c1/L8/189/027/LC08_L1TP_189027_20170403_20170414_01_T1/index.html';
     const example2Url = 'https://landsat-pds.s3.amazonaws.com/c1/L8/139/045/LC08_L1TP_139045_20170304_20170316_01_T1/index.html';
+    const example3Url = 'https://s3-us-west-2.amazonaws.com/planet-disaster-data/hurricane-harvey/SkySat_Freeport_s03_20170831T162740Z3.tif';
+    const example4Url = 'https://oin-hotosm.s3.amazonaws.com/56f9b5a963ebf4bc00074e70/0/56f9c2d42b67227a79b4faec.tif';
+    const example5Url = 'http://oin-hotosm.s3.amazonaws.com/59c66c5223c8440011d7b1e4/0/7ad397c0-bba2-4f98-a08a-931ec3a6e943.tif';
     return (
       <React.Fragment>
-        {/*  */}
-        <input
-          className="form-control form-control-sm"
-          placeholder="Index URL"
-          value={url}
-          onChange={this.handleUrlChange}
-        />
-        {/* <i
-          className="fas fa-spin fa-cog"
-          style={{
-            position: 'absolute',
-            'margin-left': '5px',
-            height: '25px',
-            display: this.isLoading() ? 'none' : 'flex',
-            'align-items': 'center',
-          }}
-        /> */}
-        <div className="input-group-append">
-          <button
-            className="btn btn-primary btn-sm"
+        <div class="form-group input-group">
+          <input
+            className="form-control span6"
+            placeholder="Custom URL"
             value={url}
-            onClick={this.handleAddClick}
-            disabled={!this.checkUrl(url) || this.isLoading()}
-          >
-            Load
-          </button>
-
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={() => this.props.addSceneFromIndex(example1Url)}
-            disabled={!this.checkUrl(example1Url) || this.isLoading()}
-          >
-            Load example 1
-          </button>
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={() => this.props.addSceneFromIndex(example2Url)}
-            disabled={!this.checkUrl(example2Url) || this.isLoading()}
-          >
-            Load example 2
-          </button>
+            onChange={this.handleUrlChange}
+          />
+          <div className="input-group-append">
+            <button
+              className="btn btn-primary"
+              value={url}
+              onClick={this.handleAddClick}
+              disabled={!this.checkUrl(url) || this.isLoading()}
+            >
+              Load URL or sample
+            </button>
+            <button
+              className="btn btn-primary dropdown-toggle dropdown-toggle-split"
+              data-toggle="dropdown"
+              aria-haspopup="true"
+              aria-expanded="false"
+            >
+              <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <div class="dropdown-menu">
+              <button
+                className="btn btn-secondary dropdown-item"
+                onClick={() => this.props.addSceneFromIndex(example1Url)}
+                disabled={!this.checkUrl(example1Url) || this.isLoading()}
+              >
+                Landsat 8 sample 1
+              </button>
+              <button
+                className="btn btn-secondary dropdown-item"
+                onClick={() => this.props.addSceneFromIndex(example2Url)}
+                disabled={!this.checkUrl(example2Url) || this.isLoading()}
+              >
+                Landsat 8 sample 2
+              </button>
+              <button
+                className="btn btn-secondary dropdown-item"
+                onClick={() => this.props.addSceneFromIndex(example3Url)}
+                disabled={!this.checkUrl(example3Url) || this.isLoading()}
+              >
+                SkySat sample
+              </button>
+              <button
+                className="btn btn-secondary dropdown-item"
+                onClick={() => this.props.addSceneFromIndex(example4Url)}
+                disabled={!this.checkUrl(example4Url) || this.isLoading()}
+              >
+                OpenArialMap sample 1
+              </button>
+              <button
+                className="btn btn-secondary dropdown-item"
+                onClick={() => this.props.addSceneFromIndex(example5Url)}
+                disabled={!this.checkUrl(example5Url) || this.isLoading()}
+              >
+                OpenArialMap sample 2
+              </button>
+            </div>
+          </div>
         </div>
       </React.Fragment>
     );
