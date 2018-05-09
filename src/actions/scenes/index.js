@@ -7,7 +7,7 @@ import { startLoading, stopLoading } from '../main';
 const {
   SCENE_ADD, SCENE_REMOVE, SCENE_CHANGE_BANDS,
   SCENE_PIPELINE_ADD_STEP, SCENE_PIPELINE_REMOVE_STEP, SCENE_PIPELINE_INDEX_STEP,
-  SCENE_PIPELINE_EDIT_STEP,
+  SCENE_PIPELINE_EDIT_STEP, SET_ERROR,
 } = types;
 
 export function addScene(url, bands, redBand, greenBand, blueBand, isSingle, hasOvr, isRGB, pipeline = []) {
@@ -40,7 +40,14 @@ export function removeScene(url) {
   };
 }
 
-const examplePipeline = [
+export function setError(message = null) {
+  return {
+    type: SET_ERROR,
+    message,
+  };
+}
+
+const landsat8Pipeline = [
   {
     operation: 'sigmoidal-contrast',
     contrast: 50,
@@ -56,7 +63,7 @@ const examplePipeline = [
   },
 ];
 
-export function addSceneFromIndex(url, pipeline = examplePipeline) {
+export function addSceneFromIndex(url, pipeline) {
   return async (dispatch, getState) => {
     const { scenes } = getState();
 
@@ -64,6 +71,9 @@ export function addSceneFromIndex(url, pipeline = examplePipeline) {
     for (const scene of scenes) {
       dispatch(removeScene(scene.id));
     }
+
+    // clear previous error
+    dispatch(setError());
 
     dispatch(startLoading());
     try {
@@ -85,16 +95,34 @@ export function addSceneFromIndex(url, pipeline = examplePipeline) {
           .map(a => a.getAttribute('href'))
           .map(file => urlJoin(relUrl, file));
 
-        const red = 4;
-        const green = 3;
-        const blue = 2;
-        const bands = new Map(
-          files
-            .filter(file => /LC0?8.*B[0-9]+.TIF$/.test(file))
-            .map(file => [parseInt(/.*B([0-9]+).TIF/.exec(file)[1], 10), file]),
-        );
+        let usedPipeline = pipeline;
+        let red = 0;
+        let green = 0;
+        let blue = 0;
+        let bands;
 
-        dispatch(addScene(url, bands, red, green, blue, false, true, false, pipeline));
+        if (files.find(file => /LC0?8.*B[0-9]+.TIF$/.test(file))) {
+          // landsat case
+          red = 4;
+          green = 3;
+          blue = 2;
+          bands = new Map(
+            files
+              .filter(file => /LC0?8.*B[0-9]+.TIF$/.test(file))
+              .map(file => [parseInt(/.*B([0-9]+).TIF/.exec(file)[1], 10), file]),
+          );
+
+          usedPipeline = usedPipeline || landsat8Pipeline;
+        } else {
+          bands = new Map(
+            files
+              .filter(file => /.TIFF?$/gi.test(file))
+              .map((file, i) => [i, file]),
+          );
+        }
+
+        const hasOvr = typeof files.find(file => /.TIFF?.OVR$/i.test(file)) !== 'undefined';
+        dispatch(addScene(url, bands, red, green, blue, false, hasOvr, false, usedPipeline));
       } else if (contentType === 'image/tiff') {
         const tiff = await fromUrl(url);
         const image = await tiff.getImage();
@@ -106,23 +134,26 @@ export function addSceneFromIndex(url, pipeline = examplePipeline) {
         }
 
         let [red, green, blue] = [];
-        if (samples !== 3) {
-          red = 0;
-          green = 0;
-          blue = 0;
-        } else {
+        if (samples === 3 || typeof image.fileDirectory.PhotometricInterpretation !== 'undefined') {
           red = 0;
           green = 1;
           blue = 2;
+        } else {
+          red = 0;
+          green = 0;
+          blue = 0;
         }
 
-        const isRGB = (typeof image.fileDirectory.PhotometricInterpretation !== 'undefined');
+        const isRGB = (
+          typeof image.fileDirectory.PhotometricInterpretation !== 'undefined'
+          && image.getSampleByteSize(0) === 1
+        );
 
         dispatch(addScene(url, bands, red, green, blue, true, false, isRGB, pipeline));
       }
-    } catch (e) {
+    } catch (error) {
       // TODO: set error somewhere to present to user
-      console.error(e);
+      dispatch(setError(error.toString()));
     } finally {
       dispatch(stopLoading());
     }
