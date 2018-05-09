@@ -30,8 +30,19 @@ class ConnectedApp extends Component {
   render() {
     const { currentSceneId, showList } = this.state;
     const { scenes, isLoading, tilesLoading, longitude, latitude, zoom, errorMessage } = this.props;
+    const scene = scenes[0];
+    const pipelineStr = scene ? scene.pipeline.map((step) => {
+      switch (step.operation) {
+        case 'sigmoidal-contrast':
+          return `sigmoidal(${step.bands || 'all'},${step.contrast},${step.bias})`;
+        case 'gamma':
+          return `gamma(${step.bands || 'all'},${step.value})`;
+        default:
+          return '';
+      }
+    }).join(';') : '';
 
-    window.location.hash = `#long=${longitude.toFixed(3)}&lat=${latitude.toFixed(3)}&zoom=${Math.round(zoom)}&scene=${scenes.length ? scenes[0].id : ''}`;
+    window.location.hash = `#long=${longitude.toFixed(3)}&lat=${latitude.toFixed(3)}&zoom=${Math.round(zoom)}&scene=${scene ? scene.id : ''}&pipeline=${pipelineStr}`;
 
     return (
       <div>

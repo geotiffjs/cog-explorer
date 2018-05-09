@@ -11,6 +11,28 @@ function parseQuery(query) {
 
 const params = parseQuery(window.location.hash.slice(1));
 
+const pipeline = params.has('pipeline') ? params.get('pipeline').split(';').map((item) => {
+  const sigmoidalRe = /sigmoidal\(([a-z]+),([0-9.]+),([0-9.]+)\)$/i;
+  const gammaRe = /gamma\(([a-z]+),([0-9.]+)\)$/i;
+  if (sigmoidalRe.test(item)) {
+    const match = item.match(sigmoidalRe);
+    return {
+      operation: 'sigmoidal-contrast',
+      bands: match[1],
+      contrast: parseFloat(match[2]),
+      bias: parseFloat(match[3]),
+    };
+  } else if (gammaRe.test(item)) {
+    const match = item.match(gammaRe);
+    return {
+      operation: 'gamma',
+      bands: match[1],
+      value: parseFloat(match[2]),
+    };
+  }
+  return null;
+}).filter(item => item) : undefined;
+
 const store = createStore(
   combineReducers({
     scenes: sceneReducer,
@@ -28,7 +50,7 @@ const store = createStore(
 
 const scene = params.get('scene');
 if (scene && scene !== '') {
-  store.dispatch(addSceneFromIndex(params.get('scene')));
+  store.dispatch(addSceneFromIndex(params.get('scene'), undefined, pipeline));
 }
 
 export default store;
