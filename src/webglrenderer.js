@@ -24,7 +24,7 @@ const globalVertexShaderSource = `
 `;
 
 
-function geMaxValue(input) {
+function getMaxValue(input) {
   if (input instanceof Uint8Array || input instanceof Uint8ClampedArray) {
     return 255;
   } else if (input instanceof Uint16Array) {
@@ -248,7 +248,6 @@ class PipelineProgramWrapper {
     gl.uniformMatrix3fv(matrixLocation, false, matrix);
 
     gl.uniform1i(gl.getUniformLocation(program, 'u_singleTexture'), isRGB ? 1 : 0);
-    gl.uniform1f(gl.getUniformLocation(program, 'u_maxValue'), geMaxValue(redData));
 
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
@@ -261,6 +260,7 @@ class PipelineProgramWrapper {
     let textureGreen;
     let textureBlue;
     if (isRGB) {
+      gl.uniform1f(gl.getUniformLocation(program, 'u_maxValue'), 1.0);
       textureRed = gl.createTexture();
       gl.bindTexture(gl.TEXTURE_2D, textureRed);
 
@@ -273,14 +273,22 @@ class PipelineProgramWrapper {
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
       gl.texImage2D(
-        gl.TEXTURE_2D, 0, gl.RGB, width, height, 0,
-        gl.RGB, gl.UNSIGNED_BYTE,
+        gl.TEXTURE_2D,
+        0,
+        gl.RGB,
+        width,
+        height,
+        0,
+        gl.RGB,
+        gl.UNSIGNED_BYTE,
         (redData instanceof Uint8Array) ? redData : new Uint8Array(redData),
       );
 
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, textureRed);
     } else {
+      gl.uniform1f(gl.getUniformLocation(program, 'u_maxValue'), getMaxValue(redData));
+
       [textureRed, textureGreen, textureBlue] = [redData, greenData, blueData].map((data) => {
         const texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -296,10 +304,16 @@ class PipelineProgramWrapper {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
         // Upload the image into the texture.
-        gl.texImage2D(gl.TEXTURE_2D, 0,
+        gl.texImage2D(
+          gl.TEXTURE_2D,
+          0,
           gl.LUMINANCE,
-          width, height, 0,
-          gl.LUMINANCE, gl.FLOAT, data ? new Float32Array(data) : null,
+          width,
+          height,
+          0,
+          gl.LUMINANCE,
+          gl.FLOAT,
+          data ? new Float32Array(data) : null,
         );
         return texture;
       });
@@ -350,9 +364,9 @@ class PipelineProgramWrapper {
         float blue;
         if (u_singleTexture) {
           vec4 value = texture2D(u_textureRed, v_texCoord);
-          red = value.r;
-          green = value.g;
-          blue = value.b;
+          red = value.r / u_maxValue;
+          green = value.g / u_maxValue;
+          blue = value.b / u_maxValue;
         } else {
           red = texture2D(u_textureRed, v_texCoord)[0] / u_maxValue;
           green = texture2D(u_textureGreen, v_texCoord)[0] / u_maxValue;
@@ -374,9 +388,9 @@ class PipelineProgramWrapper {
           discard;
         }
         gl_FragColor = vec4(
-          red, //red * 255.0,
-          green, //green * 255.0,
-          blue, //blue * 255.0,
+          red,
+          green,
+          blue,
           1.0
         );
       }`;
