@@ -10,7 +10,7 @@ const {
   SCENE_PIPELINE_EDIT_STEP,
 } = types;
 
-export function addScene(url, bands, redBand, greenBand, blueBand, isSingle, hasOvr, isRGB, pipeline = []) {
+export function addScene(url, bands, redBand, greenBand, blueBand, isSingle, hasOvr, isRGB, attribution, pipeline = []) {
   return {
     type: SCENE_ADD,
     sceneId: url,
@@ -21,6 +21,7 @@ export function addScene(url, bands, redBand, greenBand, blueBand, isSingle, has
     isSingle,
     hasOvr,
     isRGB,
+    attribution,
     pipeline,
   };
 }
@@ -56,7 +57,7 @@ const examplePipeline = [
   },
 ];
 
-export function addSceneFromIndex(url, pipeline = examplePipeline) {
+export function addSceneFromIndex(url, attribution, pipeline = examplePipeline) {
   return async (dispatch, getState) => {
     const { scenes } = getState();
 
@@ -94,7 +95,7 @@ export function addSceneFromIndex(url, pipeline = examplePipeline) {
             .map(file => [parseInt(/.*B([0-9]+).TIF/.exec(file)[1], 10), file]),
         );
 
-        dispatch(addScene(url, bands, red, green, blue, false, true, false, pipeline));
+        dispatch(addScene(url, bands, red, green, blue, false, true, false, attribution, pipeline));
       } else if (contentType === 'image/tiff') {
         const tiff = await fromUrl(url);
         const image = await tiff.getImage();
@@ -118,7 +119,7 @@ export function addSceneFromIndex(url, pipeline = examplePipeline) {
 
         const isRGB = (typeof image.fileDirectory.PhotometricInterpretation !== 'undefined');
 
-        dispatch(addScene(url, bands, red, green, blue, true, false, isRGB, pipeline));
+        dispatch(addScene(url, bands, red, green, blue, true, false, isRGB, attribution, pipeline));
       }
     } catch (e) {
       // TODO: set error somewhere to present to user

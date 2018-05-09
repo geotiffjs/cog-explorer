@@ -205,6 +205,7 @@ class MapView extends Component {
         projection: epsg,
         tileGrid,
         tileRenderFunction: (...args) => this.renderTile(scene.id, ...args),
+        attributions: scene.attribution,
       }),
     });
 
