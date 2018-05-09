@@ -84,13 +84,13 @@ class ConnectedApp extends Component {
         <div
           style={{
             position: 'absolute',
-            top: '60px',
-            right: '10px',
+            top: '58px',
+            right: '8px',
             maxWidth: 'calc(100% - 58px)',
             zIndex: 50,
           }}
         >
-          <form className="form-inline my-2 my-lg-0">
+          <form className="form-inline my-lg-0">
             <AddSceneForm />
             {/* <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" />
             <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button> */}
@@ -106,7 +106,7 @@ class ConnectedApp extends Component {
             style={{
               position: 'absolute',
               top: '10px',
-              right: '10px',
+              right: '8px',
             }}
             onClick={() => this.setState({ showList: !showList })}
             disabled={scenes.length === 0}
