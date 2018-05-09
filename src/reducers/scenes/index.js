@@ -55,6 +55,7 @@ export default function (state = initialState, action) {
           isSingle: action.isSingle,
           hasOvr: action.hasOvr,
           isRGB: action.isRGB,
+          attribution: action.attribution,
           pipeline: action.pipeline,
         },
       ];

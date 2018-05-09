@@ -10,7 +10,7 @@ const {
   SCENE_PIPELINE_EDIT_STEP, SET_ERROR,
 } = types;
 
-export function addScene(url, bands, redBand, greenBand, blueBand, isSingle, hasOvr, isRGB, pipeline = []) {
+export function addScene(url, bands, redBand, greenBand, blueBand, isSingle, hasOvr, isRGB, attribution, pipeline = []) {
   return {
     type: SCENE_ADD,
     sceneId: url,
@@ -21,6 +21,7 @@ export function addScene(url, bands, redBand, greenBand, blueBand, isSingle, has
     isSingle,
     hasOvr,
     isRGB,
+    attribution,
     pipeline,
   };
 }
@@ -63,7 +64,7 @@ const landsat8Pipeline = [
   },
 ];
 
-export function addSceneFromIndex(url, pipeline) {
+export function addSceneFromIndex(url, attribution, pipeline) {
   return async (dispatch, getState) => {
     const { scenes } = getState();
 
@@ -122,7 +123,7 @@ export function addSceneFromIndex(url, pipeline) {
         }
 
         const hasOvr = typeof files.find(file => /.TIFF?.OVR$/i.test(file)) !== 'undefined';
-        dispatch(addScene(url, bands, red, green, blue, false, hasOvr, false, usedPipeline));
+        dispatch(addScene(url, bands, red, green, blue, false, hasOvr, false, attribution, usedPipeline));
       } else if (contentType === 'image/tiff') {
         const tiff = await fromUrl(url);
         const image = await tiff.getImage();
@@ -149,7 +150,7 @@ export function addSceneFromIndex(url, pipeline) {
           && image.getSampleByteSize(0) === 1
         );
 
-        dispatch(addScene(url, bands, red, green, blue, true, false, isRGB, pipeline));
+        dispatch(addScene(url, bands, red, green, blue, true, false, isRGB, attribution, pipeline));
       }
     } catch (error) {
       // TODO: set error somewhere to present to user
