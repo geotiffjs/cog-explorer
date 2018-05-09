@@ -133,13 +133,13 @@ class MapView extends Component {
     return this.sceneSources[sceneId][url];
   }
 
-  async getRawTile(tiff, url, z, x, y, isRGB = false) {
-    const id = `${url}-${z}-${x}-${y}`;
+  async getRawTile(tiff, url, z, x, y, isRGB = false, samples) {
+    const id = `${url}-${samples ? samples.join(',') : 'all'}-${z}-${x}-${y}`;
 
     if (!this.tileCache[id]) {
       const image = await tiff.getImage(await tiff.getImageCount() - z - 1);
 
-      const poolSize = image.fileDirectory.Compression === 5 ? 4 : null;
+      // const poolSize = image.fileDirectory.Compression === 5 ? 4 : null;
       // const poolSize = null;
 
       const wnd = [
@@ -157,6 +157,7 @@ class MapView extends Component {
       } else {
         this.tileCache[id] = image.readRasters({
           window: wnd,
+          samples,
           pool: image.fileDirectory.Compression === 5 ? this.pool : null,
         });
       }
@@ -212,12 +213,14 @@ class MapView extends Component {
     this.map.addLayer(layer);
     this.sceneLayers[scene.id] = layer;
 
-    this.map.getView().animate({
-      center: proj.transform(
-        extent.getCenter(first.getBoundingBox()),
-        epsg, this.map.getView().getProjection(),
-      ),
-    });
+    this.map.getView().fit(
+      proj.transformExtent(
+        first.getBoundingBox(), epsg, this.map.getView().getProjection(),
+      ), {
+        duration: 1000,
+        padding: [0, this.map.getSize()[0] / 2, 0, 0],
+      },
+    );
 
     const source = layer.getSource();
     this.progressBar.setSource(source);
@@ -247,7 +250,7 @@ class MapView extends Component {
       return;
     }
 
-    if (scene.isRGB && scene.isSingle) {
+    if (scene.isRGB) { // && scene.isSingle) {
       const tiff = await this.getImage(sceneId, scene.bands.get(scene.redBand), scene.hasOvr);
       tiff.baseUrl = sceneId;
       console.time(`parsing ${sceneId + z + x + y}`);
@@ -278,6 +281,24 @@ class MapView extends Component {
       // ctx.putImageData(imageData, 0, 0);
 
       renderData(canvas, scene.pipeline, width, height, data, null, null, true);
+      console.timeEnd(`rendering ${sceneId + z + x + y}`);
+    } else if (scene.isSingle) {
+      const tiff = await this.getImage(sceneId, scene.bands.get(scene.redBand), scene.hasOvr);
+      tiff.baseUrl = sceneId;
+      console.time(`parsing ${sceneId + z + x + y}`);
+      const data = await this.getRawTile(tiff, tiff.baseUrl, z, x, y, false, [
+        scene.redBand, scene.greenBand, scene.blueBand,
+      ]);
+      console.timeEnd(`parsing ${sceneId + z + x + y}`);
+
+      const { width, height } = data;
+      canvas.width = width;
+      canvas.height = height;
+
+      console.time(`rendering ${sceneId + z + x + y}`);
+      const [red, green, blue] = data;
+      // const [red, green, blue] = [redArr, greenArr, blueArr].map(arr => arr[0]);
+      renderData(canvas, scene.pipeline, width, height, red, green, blue, false);
       console.timeEnd(`rendering ${sceneId + z + x + y}`);
     } else {
       const [redImage, greenImage, blueImage] = await all([
