@@ -12,7 +12,7 @@
       <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">Landsat-8 Cloud Optimized GeoTIFF (COG) explorer</h5>
+            <h5 class="modal-title" id="exampleModalLabel">Cloud Optimized GeoTIFF (COG) Explorer</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
@@ -20,19 +20,20 @@
           <div class="modal-body">
             <h2>Howdie!</h2>
             <p>
-              Welcome to the COG explorer!
+              Welcome to the COG-Explorer!
             </p>
             <p>
-              This app allows you to visually inspect individual scenes from the Landsat-8 archive on Amazon S3.
-              Either copy the URL to the <code>index.html</code> of the scene you want to
-              investigate in the "Index URL" field and hit "Load", or alternatively, show
-              one of the two preselected scenes using the example buttons. Note, while optimizing
+              This app allows you to visually inspect individual Cloud Optimized GeoTIFFs (COGs) like
+              scenes from the Landsat-8 archive on Amazon S3.
+              Either copy the URL to the COG or to the <code>index.html</code> of the Landsat 8 scene you want to
+              investigate in the "Custom URL" field and hit "Load URL or sample", or alternatively, show
+              one of the preselected samples using the <button class="btn btn-sm"><i class="fas fa-caret-down"></i></button> button. Note, while optimizing
               the data access by utilizing the COG features to only retrieve necessary parts of the data this
-              app downloads the actual UInt16 raster values which uses quite some download bandwidth.
+              app downloads the actual raster values, UInt16 for Landsat 8, which uses quite some download bandwidth.
               Additionally the data is download in its original projection and re-projected on the fly.
             </p>
             <p>
-              The selected scene is displayed on the map, which you can zoom and pan as you
+              The selected COG is displayed on the map, which you can zoom and pan as you
               like. It is visualized as natural color composite with some default processing
               steps applied. Using the <button class="btn btn-sm"><i class="fas fa-wrench"></i></button>
               button you can adjust the visualization by selecting the bands to use and processing
@@ -46,7 +47,7 @@
             </p>
             <p>
               This app uses the <a href="https://github.com/geotiffjs/geotiff.js">geotiff.js</a>
-              library to read the actual UInt16 raster values from the band files (or the overviews, depending on the maps
+              library to read the actual raster values like UInt16 from the band files (or the overviews, depending on the maps
               zoomlevel). Taking advantage of the optimized structure of COGs, only the parts
               of the file that are actually required are requested, drastically reducing
               the overall amount of data transmitted from the archive.
@@ -91,7 +92,7 @@
         if (localStorage && localStorage.getItem('has-shown-welcome') !== 'true') {
           $('#initModal').modal('show');
           localStorage.setItem('has-shown-welcome', 'true');
-        }        
+        }
       });
     </script>
   </body>
