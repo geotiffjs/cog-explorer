@@ -7,7 +7,10 @@ import ListScenes from './components/scenes/list';
 import SceneDetails from './components/scenes/details';
 import MapView from './components/mapview';
 
+import { setError } from './actions/scenes';
+
 const mapStateToProps = ({ scenes, main }) => ({ scenes, ...main });
+const mapDispatchToProps = { setError };
 
 class ConnectedApp extends Component {
   constructor() {
@@ -26,7 +29,7 @@ class ConnectedApp extends Component {
 
   render() {
     const { currentSceneId, showList } = this.state;
-    const { scenes, isLoading, tilesLoading, longitude, latitude, zoom } = this.props;
+    const { scenes, isLoading, tilesLoading, longitude, latitude, zoom, errorMessage } = this.props;
 
     window.location.hash = `#long=${longitude.toFixed(3)}&lat=${latitude.toFixed(3)}&zoom=${Math.round(zoom)}&scene=${scenes.length ? scenes[0].id : ''}`;
 
@@ -42,6 +45,28 @@ class ConnectedApp extends Component {
               <span className="navbar-brand" style={{ color: 'white' }}>
                 COG-Explorer
               </span>
+              {
+                errorMessage &&
+                <div
+                  className="alert alert-warning fade show"
+                  role="alert"
+                  style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '90px',
+                    padding: '5px 4rem 5px 5px',
+                  }}
+                >{errorMessage}
+                  <button type="button" className="close" aria-label="Close" style={{
+                    position: 'absolute',
+                    top: 0,
+                    right: 0,
+                    padding: '5px',
+                  }} onClick={() => this.props.setError()}>
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+              }
               <i
                 className="navbar-brand fas fa-spin fa-cog text-light"
                 style={{
@@ -114,6 +139,6 @@ class ConnectedApp extends Component {
   }
 }
 
-const App = hot(module)(connect(mapStateToProps)((ConnectedApp)));
+const App = hot(module)(connect(mapStateToProps, mapDispatchToProps)((ConnectedApp)));
 
 export default App;

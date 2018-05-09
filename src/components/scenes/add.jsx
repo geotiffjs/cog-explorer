@@ -56,23 +56,12 @@ class ConnectedAddSceneForm extends Component {
     const example2Url = 'https://landsat-pds.s3.amazonaws.com/c1/L8/139/045/LC08_L1TP_139045_20170304_20170316_01_T1/index.html';
     return (
       <React.Fragment>
-        {/*  */}
         <input
           className="form-control form-control-sm"
           placeholder="Index URL"
           value={url}
           onChange={this.handleUrlChange}
         />
-        {/* <i
-          className="fas fa-spin fa-cog"
-          style={{
-            position: 'absolute',
-            'margin-left': '5px',
-            height: '25px',
-            display: this.isLoading() ? 'none' : 'flex',
-            'align-items': 'center',
-          }}
-        /> */}
         <div className="input-group-append">
           <button
             className="btn btn-primary btn-sm"
