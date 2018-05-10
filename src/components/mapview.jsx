@@ -213,14 +213,20 @@ class MapView extends Component {
     this.map.addLayer(layer);
     this.sceneLayers[scene.id] = layer;
 
-    this.map.getView().fit(
-      proj.transformExtent(
-        first.getBoundingBox(), epsg, this.map.getView().getProjection(),
-      ), {
-        duration: 1000,
-        padding: [0, this.map.getSize()[0] / 2, 0, 0],
-      },
+    const view = this.map.getView();
+    const lonLatExtent = proj.transformExtent(
+      first.getBoundingBox(), epsg, this.map.getView().getProjection(),
     );
+
+    // only animate to new bounds when center is not already inside image
+    if (!extent.containsCoordinate(lonLatExtent, view.getCenter())) {
+      view.fit(
+        lonLatExtent, {
+          duration: 1000,
+          padding: [0, this.map.getSize()[0] / 2, 0, 0],
+        },
+      );
+    }
 
     const source = layer.getSource();
     this.progressBar.setSource(source);
