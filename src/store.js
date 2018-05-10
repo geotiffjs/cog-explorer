@@ -2,7 +2,7 @@ import { createStore, applyMiddleware, combineReducers } from 'redux';
 import thunk from 'redux-thunk';
 import sceneReducer from './reducers/scenes';
 import mainReducer from './reducers/main';
-import { addSceneFromIndex } from './actions/scenes';
+import { addSceneFromIndex, sceneChangeBands } from './actions/scenes';
 
 
 function parseQuery(query) {
@@ -33,6 +33,12 @@ const pipeline = params.has('pipeline') ? params.get('pipeline').split(';').map(
   return null;
 }).filter(item => item) : undefined;
 
+const bands = params.has('bands') ? params.get('bands')
+  .split(',')
+  .map(b => parseInt(b, 10))
+  .filter(b => !Number.isNaN(b))
+  : [];
+
 const store = createStore(
   combineReducers({
     scenes: sceneReducer,
@@ -50,7 +56,14 @@ const store = createStore(
 
 const scene = params.get('scene');
 if (scene && scene !== '') {
-  store.dispatch(addSceneFromIndex(params.get('scene'), undefined, pipeline));
+  const request = store.dispatch(addSceneFromIndex(scene, undefined, pipeline));
+  if (bands.length === 3) {
+    request.then(() => store.dispatch(sceneChangeBands(scene, {
+      redBand: bands[0],
+      greenBand: bands[1],
+      blueBand: bands[2],
+    })));
+  }
 }
 
 export default store;

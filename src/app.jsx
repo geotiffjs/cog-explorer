@@ -42,7 +42,9 @@ class ConnectedApp extends Component {
       }
     }).join(';') : '';
 
-    window.location.hash = `#long=${longitude.toFixed(3)}&lat=${latitude.toFixed(3)}&zoom=${Math.round(zoom)}&scene=${scene ? scene.id : ''}&pipeline=${pipelineStr}`;
+    const bands = scene && !scene.isRGB ? [scene.redBand, scene.greenBand, scene.blueBand].join(',') : '';
+
+    window.location.hash = `#long=${longitude.toFixed(3)}&lat=${latitude.toFixed(3)}&zoom=${Math.round(zoom)}&scene=${scene ? scene.id : ''}&bands=${bands}&pipeline=${pipelineStr}`;
 
     return (
       <div>

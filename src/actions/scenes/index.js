@@ -129,7 +129,9 @@ export function addSceneFromIndex(url, attribution, pipeline) {
         }
 
         const hasOvr = typeof files.find(file => /.TIFF?.OVR$/i.test(file)) !== 'undefined';
-        dispatch(addScene(url, bands, red, green, blue, false, hasOvr, false, attribution, usedPipeline));
+        dispatch(
+          addScene(url, bands, red, green, blue, false, hasOvr, false, attribution, usedPipeline)
+        );
       } else if (contentType === 'image/tiff') {
         const tiff = await fromUrl(url);
         const image = await tiff.getImage();
