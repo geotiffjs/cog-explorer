@@ -108,14 +108,14 @@ class ConnectedAddSceneForm extends Component {
                 onClick={() => this.props.addSceneFromIndex(example4Url)}
                 disabled={!this.checkUrl(example4Url) || this.isLoading()}
               >
-                OpenArialMap sample 1
+                OpenAerialMap sample 1
               </button>
               <button
                 className="btn btn-secondary dropdown-item"
                 onClick={() => this.props.addSceneFromIndex(example5Url)}
                 disabled={!this.checkUrl(example5Url) || this.isLoading()}
               >
-                OpenArialMap sample 2
+                OpenAerialMap sample 2
               </button>
             </div>
           </div>
