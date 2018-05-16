@@ -54,7 +54,7 @@ class ConnectedAddSceneForm extends Component {
     const example3Url = 'https://s3-us-west-2.amazonaws.com/planet-disaster-data/hurricane-harvey/SkySat_Freeport_s03_20170831T162740Z3.tif';
     const example3Attribution = 'cc-by-sa, downloaded from https://www.planet.com/disaster/hurricane-harvey-2017-08-28/';
     const example4Url = 'https://oin-hotosm.s3.amazonaws.com/56f9b5a963ebf4bc00074e70/0/56f9c2d42b67227a79b4faec.tif';
-    const example5Url = 'http://oin-hotosm.s3.amazonaws.com/59c66c5223c8440011d7b1e4/0/7ad397c0-bba2-4f98-a08a-931ec3a6e943.tif';
+    const example5Url = 'https://oin-hotosm.s3.amazonaws.com/59c66c5223c8440011d7b1e4/0/7ad397c0-bba2-4f98-a08a-931ec3a6e943.tif';
     return (
       <React.Fragment>
         <div className="form-group input-group">
