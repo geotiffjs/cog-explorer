@@ -1,21 +1,36 @@
 const path = require('path');
 
+const isProduction = (process.env.NODE_ENV === 'production');
+
 module.exports = {
   entry: ['babel-polyfill', './src/index.jsx'],
 
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'app.bundle.js',
+    globalObject: 'this',
   },
 
   module: {
     rules: [
+//        test: /\.worker\.js$/,
+//        use: [{
+//          loader: 'babel-loader',
+//          // options are in .babelrc
+//        }, {
+//          loader: 'worker-loader',
+//          options: {
+//            inline: true,
+//          },
+//       }],
       {
         test: /\.worker\.js$/,
         use: {
           loader: 'worker-loader',
           options: {
+            name: isProduction ? '[hash].decoder.worker.min.js' : '[hash].decoder.worker.js',
             inline: true,
+            fallback: true,
           },
         },
       }, {
