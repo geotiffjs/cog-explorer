@@ -1,5 +1,5 @@
 import urlJoin from 'url-join';
-import { fromUrl } from 'geotiff';
+import { fromUrl } from 'geotiff/src/main';
 
 import types from '../../types';
 import { startLoading, stopLoading } from '../main';

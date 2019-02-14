@@ -28,7 +28,7 @@ module.exports = {
         use: {
           loader: 'worker-loader',
           options: {
-            name: isProduction ? '[hash].decoder.worker.min.js' : '[hash].decoder.worker.js',
+            name: isProduction ? '[hash].worker.min.js' : '[hash].worker.js',
             inline: true,
             fallback: true,
           },
