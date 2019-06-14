@@ -18,6 +18,7 @@ import CanvasTileImageSource, { ProgressBar } from '../maputil';
 import { renderData } from '../renderutils';
 
 import { tileStartLoading, tileStopLoading, setPosition } from '../actions/main';
+import { type } from 'os';
 
 
 proj.setProj4(proj4);
@@ -192,12 +193,14 @@ class MapView extends Component {
       tileSizes: tileSizes.reverse(),
     });
 
-    // proj setup?
+    const code = first.geoKeys.ProjectedCSTypeGeoKey || first.geoKeys.GeographicTypeGeoKey;
+    if (typeof code === 'undefined') {
+      throw new Error('No ProjectedCSTypeGeoKey or GeographicTypeGeoKey provided');
+    }
 
-    const epsg = `EPSG:${first.geoKeys.ProjectedCSTypeGeoKey}`;
-
+    const epsg = `EPSG:${code}`;
     if (!proj4.defs(epsg)) {
-      const response = await fetch(`//epsg.io/${first.geoKeys.ProjectedCSTypeGeoKey}.proj4`);
+      const response = await fetch(`//epsg.io/${code}.proj4`);
       proj4.defs(epsg, await response.text());
     }
 
