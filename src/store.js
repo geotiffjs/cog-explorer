@@ -14,6 +14,7 @@ const params = parseQuery(window.location.hash.slice(1));
 const pipeline = params.has('pipeline') ? params.get('pipeline').split(';').map((item) => {
   const sigmoidalRe = /sigmoidal\(([a-z]+),([0-9.]+),([0-9.]+)\)$/i;
   const gammaRe = /gamma\(([a-z]+),([0-9.]+)\)$/i;
+  const linearRe = /linear\(([a-z]+),([0-9.]+),([0-9.]+)\)$/i;
   if (sigmoidalRe.test(item)) {
     const match = item.match(sigmoidalRe);
     return {
@@ -28,6 +29,14 @@ const pipeline = params.has('pipeline') ? params.get('pipeline').split(';').map(
       operation: 'gamma',
       bands: match[1],
       value: parseFloat(match[2]),
+    };
+  } else if (linearRe.test(item)) {
+    const match = item.match(linearRe);
+    return {
+      operation: 'linear',
+      bands: match[1],
+      min: parseFloat(match[2]),
+      max: parseFloat(match[3]),
     };
   }
   return null;

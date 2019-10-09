@@ -787,12 +787,12 @@ if (WebGLRenderer.isSupported()) {
   webGLRenderer = new WebGLRenderer();
 }
 
-export function renderData(canvas, ...args) {
+export function renderData(tile, ...args) {
   // TODO: prefer rendering via webgl
   // const gl = create3DContext(canvas);
   if (webGLRenderer) {
     // return renderDataWebGl(canvas, gl, ...args);
-    return webGLRenderer.render(canvas, ...args);
+    return webGLRenderer.render(tile, ...args);
   }
-  return renderData2d(canvas, ...args);
+  return renderData2d(tile, ...args);
 }

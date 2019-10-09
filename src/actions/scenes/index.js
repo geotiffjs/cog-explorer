@@ -159,6 +159,45 @@ export function addSceneFromIndex(url, attribution, pipeline) {
         );
 
         dispatch(addScene(url, bands, red, green, blue, true, false, isRGB, attribution, pipeline));
+      } else if (contentType === 'application/json') {
+        const relUrl = url.endsWith('/') ? url : url.substring(0, url.lastIndexOf('/'));
+        const response = await fetch(url, {});
+        const stacJSON = await response.json();
+
+
+        let files = [];
+        for (const key in stacJSON.assets) {
+          if (Object.prototype.hasOwnProperty.call(stacJSON.assets, key)) {
+            const asset = stacJSON.assets[key];
+            if (asset.type === 'image/x.geotiff' || asset.type === 'image/geotiff') {
+              files.push({
+                title: asset.title,
+                href: asset.href,
+              });
+            }
+          }
+        }
+
+        let usedPipeline = pipeline;
+        let red = 0;
+        let green = 0;
+        let blue = 0;
+        let bands;
+
+
+        bands = new Map(
+          files
+            .filter(file => /.tiff?$/gi.test(file.href))
+            .map((file, i) => [i, file.href]),
+        );
+
+        // TODO: Temporary overwrite of has overview value to true
+        //       Either will not be necessary in the future using cog geotiffs
+        //       or information about overview must be read from the STAC file
+        const hasOvr = true; /* typeof files.find(file => /.TIFF?.OVR?.tiff$/i.test(file)) !== 'undefined' */
+        dispatch(
+          addScene(url, bands, red, green, blue, false, hasOvr, false, attribution, usedPipeline),
+        );
       }
     } catch (error) {
       // TODO: set error somewhere to present to user
@@ -180,6 +219,12 @@ export function addStep(url, operation) {
       break;
     case 'gamma':
       values = { value: 1.0 };
+      break;
+    case 'linear':
+      values = {
+        min: 0.0,
+        max: 1.0,
+      };
       break;
     default:
       values = {};

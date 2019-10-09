@@ -37,6 +37,8 @@ class ConnectedApp extends Component {
           return `sigmoidal(${step.bands || 'all'},${step.contrast},${step.bias})`;
         case 'gamma':
           return `gamma(${step.bands || 'all'},${step.value})`;
+        case 'linear':
+          return `linear(${step.bands || 'all'},${step.min},${step.max})`;
         default:
           return '';
       }
@@ -48,15 +50,15 @@ class ConnectedApp extends Component {
 
     return (
       <div>
-        <nav className="navbar navbar-expand-lg navbar-light bg-light">
+        <nav className="navbar navbar-expand-lg navbar-light bg-light" >
           <div className="container-fluid">
             <div className="navbar-header">
-              <a className="navbar-brand" href="https://eox.at/" target="_blank" rel="noopener noreferrer">
-                <img alt="" src="images/EOX_Logo_white.svg" />
+              <a className="navbar-brand" href="https://www.eurodatacube.com/" target="_blank" rel="noopener noreferrer">
+                <img alt="" src="images/EDC_logo.svg"/>
               </a>
 
-              <span className="navbar-brand" style={{ color: 'white' }}>
-                COG-Explorer
+              <span className="navbar-brand" style={{ color: '#fff' }}>
+                STAC loader
               </span>
               {
                 errorMessage &&

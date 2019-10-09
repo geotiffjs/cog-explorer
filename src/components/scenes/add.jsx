@@ -49,6 +49,7 @@ class ConnectedAddSceneForm extends Component {
 
   render() {
     const { url } = this.state;
+    const example0Url = 'https://upperaustria-400.s3.eu-central-1.amazonaws.com/landsat/LC81890272019259/LC81890272019259.json';
     const example1Url = 'https://landsat-pds.s3.amazonaws.com/c1/L8/189/027/LC08_L1TP_189027_20170403_20170414_01_T1/index.html';
     const example2Url = 'https://landsat-pds.s3.amazonaws.com/c1/L8/139/045/LC08_L1TP_139045_20170304_20170316_01_T1/index.html';
     const example3Url = 'https://s3-us-west-2.amazonaws.com/planet-disaster-data/hurricane-harvey/SkySat_Freeport_s03_20170831T162740Z3.tif';
@@ -82,6 +83,13 @@ class ConnectedAddSceneForm extends Component {
               <span className="sr-only">Toggle Dropdown</span>
             </button>
             <div className="dropdown-menu">
+              <button
+                className="btn btn-secondary dropdown-item"
+                onClick={() => this.props.addSceneFromIndex(example0Url)}
+                disabled={!this.checkUrl(example0Url) || this.isLoading()}
+              >
+                STAC Example
+              </button>
               <button
                 className="btn btn-secondary dropdown-item"
                 onClick={() => this.props.addSceneFromIndex(example1Url)}

@@ -74,6 +74,47 @@ const Gamma = connect(null, mapDispatchToProps)(({ step, sceneId, index, editSte
   );
 });
 
+const Linear = connect(null, mapDispatchToProps)(({ step, sceneId, index, editStep }) => {
+  return (
+    <React.Fragment>
+      <div className="form-group row">
+        <label className="col-sm-3 col-form-label col-form-label-sm">Minimum:</label>
+        <div className="input-group input-group-sm col-sm-9">
+          <input
+            className="form-control form-control-sm custom-range"
+            value={step.min}
+            min="0"
+            max="1.0"
+            step="0.0001"
+            type="range"
+            onChange={e => editStep(sceneId, index, { min: e.target.value })}
+          />
+          <div className="input-group-append">
+            <span className="input-group-text" style={{ width: '3.5em' }}>{step.min}</span>
+          </div>
+        </div>
+      </div>
+      <div className="form-group row">
+        <label className="col-sm-3 col-form-label col-form-label-sm">Maximum:</label>
+        <div className="input-group input-group-sm col-sm-9">
+          <input
+            className="form-control form-control-sm custom-range"
+            value={step.max}
+            min="0"
+            max="1.0"
+            step="0.0001"
+            type="range"
+            onChange={e => editStep(sceneId, index, { max: e.target.value })}
+          />
+          <div className="input-group-append">
+            <span className="input-group-text" style={{ width: '3.5em' }}>{step.max}</span>
+          </div>
+        </div>
+      </div>
+    </React.Fragment>
+  );
+});
+
 
 export default connect(null, mapDispatchToProps)(({ sceneId, step, index, isLast, editStep, indexStep, removeStep }) => {
   let sub;
@@ -82,6 +123,8 @@ export default connect(null, mapDispatchToProps)(({ sceneId, step, index, isLast
     sub = <Sigmoidal sceneId={sceneId} step={step} index={index} />;
   } else if (step.operation === 'gamma') {
     sub = <Gamma sceneId={sceneId} step={step} index={index} />;
+  } else if (step.operation === 'linear') {
+    sub = <Linear sceneId={sceneId} step={step} index={index} />;
   }
 
   return (

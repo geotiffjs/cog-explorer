@@ -177,9 +177,48 @@ class GammaStep extends StepBase {
   }
 }
 
+class LinearStep extends StepBase {
+  static get name() {
+    return 'linear';
+  }
+
+  static getFragmentSourceLib() {
+    return `
+      float linear(float v, float min, float max) {
+        float extent = max - min;
+        if (v > 0.0) {
+          return (v-min)/extent;
+        } else {
+          return v;
+        }
+      }
+    `;
+  }
+
+  getUniformIds() {
+    return [`u_${this.prefix}_min`, `u_${this.prefix}_max`];
+  }
+
+  getCall(variableName) {
+    return `linear(${variableName}, u_${this.prefix}_min, u_${this.prefix}_max)`;
+  }
+
+  bindUniforms(gl, program, values) {
+    gl.uniform1f(
+      gl.getUniformLocation(program, `u_${this.prefix}_min`),
+      values.min,
+    );
+    gl.uniform1f(
+      gl.getUniformLocation(program, `u_${this.prefix}_max`),
+      values.max,
+    );
+  }
+}
+
 const stepClasses = {
   'sigmoidal-contrast': SigmoidalContrastStep,
   gamma: GammaStep,
+  linear: LinearStep,
 };
 
 
@@ -409,7 +448,7 @@ export default class WebGLRenderer {
     this.wrappers = {};
   }
 
-  render(canvas, pipeline, width, height, redData, greenData, blueData, isRGB) {
+  render(tile, pipeline, width, height, redData, greenData, blueData, isRGB) {
     try {
       const pipelineId = getPipelineId(pipeline);
       if (!this.wrappers[pipelineId]) {
@@ -423,10 +462,8 @@ export default class WebGLRenderer {
         this.gl, pipeline, width, height, redData, greenData, blueData, isRGB,
       );
 
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(this.renderCanvas, 0, 0);
+      const image = tile.getImage();
+      image.src = this.renderCanvas.toDataURL();
     } catch (e) {
       console.error(e);
     }

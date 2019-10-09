@@ -6,7 +6,8 @@ import TileState from 'ol/tilestate';
 class CanvasTile extends Tile {
   constructor(tileCoord, state, src, crossOrigin, tileLoadFunction, options) {
     super(tileCoord, state, options);
-    this.canvas = document.createElement('canvas');
+    // this.canvas = document.createElement('canvas');
+    this.image_ = new Image();
     this.tileLoadFunction = tileLoadFunction;
     this.src = src;
   }
@@ -16,7 +17,7 @@ class CanvasTile extends Tile {
   }
 
   getImage() {
-    return this.getCanvas();
+    return this.image_;
   }
 
   load() {
@@ -46,7 +47,7 @@ export default class CanvasTileImageSource extends TileImageSource {
     const { z, x, y } = JSON.parse(url);
     try {
       this.dispatchEvent('tileloadstart');
-      await this.tileRenderFunction(tile.getCanvas(), z, x, y);
+      await this.tileRenderFunction(tile, z, x, y);
       done();
       this.dispatchEvent('tileloadend');
     } catch (err) {

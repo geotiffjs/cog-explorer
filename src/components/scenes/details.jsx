@@ -137,6 +137,7 @@ class ConnectedSceneDetails extends Component {
                       <option disabled="true" selected="selected">---</option>
                       <option value="sigmoidal-contrast">sigmoidal-contrast</option>
                       <option value="gamma">gamma</option>
+                      <option value="linear">linear</option>
                     </select>
                     <div className="input-group-append">
                       <button

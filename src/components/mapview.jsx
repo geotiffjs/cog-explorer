@@ -239,7 +239,7 @@ class MapView extends Component {
     source.on('tileloaderror', this.props.tileStopLoading);
   }
 
-  async renderTile(sceneId, canvas, z, x, y) {
+  async renderTile(sceneId, tile, z, x, y) {
     const id = `${z}-${x}-${y}`;
 
     if (!this.renderedTileCache[sceneId]) {
@@ -247,12 +247,12 @@ class MapView extends Component {
     }
 
     if (!this.renderedTileCache[sceneId][id]) {
-      this.renderedTileCache[sceneId][id] = this.renderTileInternal(sceneId, canvas, z, x, y);
+      this.renderedTileCache[sceneId][id] = this.renderTileInternal(sceneId, tile, z, x, y);
     }
     return this.renderedTileCache[sceneId][id];
   }
 
-  async renderTileInternal(sceneId, canvas, z, x, y) {
+  async renderTileInternal(sceneId, tile, z, x, y) {
     const scene = this.props.scenes.find(s => s.id === sceneId);
 
     if (!scene) {
@@ -266,8 +266,6 @@ class MapView extends Component {
       const data = await this.getRawTile(tiff, tiff.baseUrl, z, x, y, true);
       console.timeEnd(`parsing ${sceneId + z + x + y}`);
       const { width, height } = data;
-      canvas.width = width;
-      canvas.height = height;
 
       console.time(`rendering ${sceneId + z + x + y}`);
       // const ctx = canvas.getContext('2d');
@@ -289,7 +287,7 @@ class MapView extends Component {
       // }
       // ctx.putImageData(imageData, 0, 0);
 
-      renderData(canvas, scene.pipeline, width, height, data, null, null, true);
+      renderData(tile, scene.pipeline, width, height, data, null, null, true);
       console.timeEnd(`rendering ${sceneId + z + x + y}`);
     } else if (scene.isSingle) {
       const tiff = await this.getImage(sceneId, scene.bands.get(scene.redBand), scene.hasOvr);
@@ -301,13 +299,11 @@ class MapView extends Component {
       console.timeEnd(`parsing ${sceneId + z + x + y}`);
 
       const { width, height } = data;
-      canvas.width = width;
-      canvas.height = height;
 
       console.time(`rendering ${sceneId + z + x + y}`);
       const [red, green, blue] = data;
       // const [red, green, blue] = [redArr, greenArr, blueArr].map(arr => arr[0]);
-      renderData(canvas, scene.pipeline, width, height, red, green, blue, false);
+      renderData(tile, scene.pipeline, width, height, red, green, blue, false);
       console.timeEnd(`rendering ${sceneId + z + x + y}`);
     } else {
       const [redImage, greenImage, blueImage] = await all([
@@ -325,12 +321,10 @@ class MapView extends Component {
       ));
 
       const { width, height } = redArr;
-      canvas.width = width;
-      canvas.height = height;
 
       console.time(`rendering ${sceneId + z + x + y}`);
       const [red, green, blue] = [redArr, greenArr, blueArr].map(arr => arr[0]);
-      renderData(canvas, scene.pipeline, width, height, red, green, blue, false);
+      renderData(tile, scene.pipeline, width, height, red, green, blue, false);
       console.timeEnd(`rendering ${sceneId + z + x + y}`);
     }
   }

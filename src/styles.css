@@ -1,5 +1,5 @@
 .navbar {
-  background: #373b50 !important;
+  background: #004170 !important;
   padding-bottom: 0 !important;
   padding-top: 0 !important;
   margin: 0 !important;
@@ -9,8 +9,9 @@
 }
 
 .navbar-brand>img {
-    height: 20px !important;
+    height: 50px;
     width: auto !important;
+    padding: 5px;
 }
 
 .map-progress-bar {
