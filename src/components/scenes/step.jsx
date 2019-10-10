@@ -85,7 +85,7 @@ const Linear = connect(null, mapDispatchToProps)(({ step, sceneId, index, editSt
             value={step.min}
             min="0"
             max="1.0"
-            step="0.0001"
+            step="0.01"
             type="range"
             onChange={e => editStep(sceneId, index, { min: e.target.value })}
           />
@@ -102,7 +102,7 @@ const Linear = connect(null, mapDispatchToProps)(({ step, sceneId, index, editSt
             value={step.max}
             min="0"
             max="1.0"
-            step="0.0001"
+            step="0.01"
             type="range"
             onChange={e => editStep(sceneId, index, { max: e.target.value })}
           />
@@ -111,9 +111,25 @@ const Linear = connect(null, mapDispatchToProps)(({ step, sceneId, index, editSt
           </div>
         </div>
       </div>
+      {/*<div className="form-group row">
+        <button
+            className="btn linearstretch"
+            onClick={() => {}}
+          >
+          Stretch Min/Max
+        </button>
+        <button
+            className="btn linearstretch"
+            onClick={() => {}}
+          >
+          Stretch Min/Max (p. 2%-98%)
+        </button>
+      </div>*/}
     </React.Fragment>
   );
 });
+
+
 
 
 export default connect(null, mapDispatchToProps)(({ sceneId, step, index, isLast, editStep, indexStep, removeStep }) => {

@@ -47,3 +47,26 @@
   from { opacity: 1; }
   to   { opacity: 0; }
 }
+
+.linearstretch{
+  margin: 3px;
+}
+
+/* Making forms a bit tighter */
+.form-group.row{
+  margin-bottom: 4px;
+}
+.input-group.input-group-sm.col-sm-9{
+  padding-left: 0px;
+  padding-right: 0px;
+}
+.card-body{
+  padding: 0.75em;
+  padding-right: 1.75em;
+}
+.card-header{
+  padding: 0.45em;
+}
+.card.card-body{
+  width: 720px;
+}

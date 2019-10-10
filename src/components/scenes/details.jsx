@@ -42,7 +42,7 @@ class ConnectedSceneDetails extends Component {
         <div className="card-body row">
           {
             scene.isRGB ||
-            <div className="col-sm">
+            <div className="col-sm-4">
               <form>
                 <div className="form-group">
                   <label htmlFor="">Red Band</label>
@@ -113,7 +113,7 @@ class ConnectedSceneDetails extends Component {
               </form>
             </div>
           }
-          <div className="col-sm">
+          <div className="col-sm-8">
             {scene.pipeline.map(
               (step, index) => (
                 <Step

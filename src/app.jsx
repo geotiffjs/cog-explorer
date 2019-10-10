@@ -134,11 +134,11 @@ class ConnectedApp extends Component {
               className="card card-body"
               style={{
                 position: 'absolute',
-                top: '10px',
-                right: '60px',
+                top: '42px',
+                right: '8px',
                 maxWidth: 'calc(100% - 108px)',
-                maxHeight: 'calc(100% - 20px)',
-                overflowY: 'scroll',
+                maxHeight: 'calc(100% - 50px)',
+                overflowY: 'auto',
                 zIndex: 100,
               }}
             >
