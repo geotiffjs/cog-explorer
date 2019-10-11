@@ -32,13 +32,17 @@ class ConnectedSceneDetails extends Component {
 
   render() {
     const { scene, onSceneHide, removeScene, sceneChangeBands, addStep } = this.props;
-    const bandIds = Array.from(Uint8Array.from(scene.bands.keys()).sort());
+    const bandIds = Array.from(Uint8Array.from(scene.bands.keys()));
+    let bandLabels = bandIds.map(en => `B${en}`);
+    if (scene.bandLabels) {
+      bandLabels = Array.from(scene.bandLabels.values());
+    }
 
     const isLandsat = Array.from(scene.bands.values()).find(file => /LC0?8.*B[0-9]+.TIF$/.test(file));
 
     return (
       <div className="card">
-        <div className="card-header">Details for {scene.id}</div>
+        <div className="card-header">Details for {scene.title}</div>
         <div className="card-body row">
           {
             scene.isRGB ||
@@ -52,7 +56,7 @@ class ConnectedSceneDetails extends Component {
                     onChange={event => sceneChangeBands(scene.id, { redBand: parseInt(event.target.value, 10) })}
                   >
                     {
-                      bandIds.map(i => <option value={i} key={i}>B{i}</option>)
+                      bandIds.map(i => <option value={i} key={i}>{bandLabels[i]}</option>)
                     }
                   </select>
                 </div>
@@ -64,7 +68,7 @@ class ConnectedSceneDetails extends Component {
                     onChange={event => sceneChangeBands(scene.id, { greenBand: parseInt(event.target.value, 10) })}
                   >
                     {
-                      bandIds.map(i => <option value={i} key={i}>B{i}</option>)
+                      bandIds.map(i => <option value={i} key={i}>{bandLabels[i]}</option>)
                     }
                   </select>
                 </div>
@@ -76,7 +80,7 @@ class ConnectedSceneDetails extends Component {
                     onChange={event => sceneChangeBands(scene.id, { blueBand: parseInt(event.target.value, 10) })}
                   >
                     {
-                      bandIds.map(i => <option value={i} key={i}>B{i}</option>)
+                      bandIds.map(i => <option value={i} key={i}>{bandLabels[i]}</option>)
                     }
                   </select>
                 </div>

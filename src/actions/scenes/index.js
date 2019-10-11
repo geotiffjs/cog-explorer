@@ -16,11 +16,12 @@ const urlToAttribution = {
 };
 
 
-export function addScene(url, bands, redBand, greenBand, blueBand, isSingle, hasOvr, isRGB, attribution, pipeline = []) {
+export function addScene(url, bands, bandLabels, redBand, greenBand, blueBand, isSingle, hasOvr, isRGB, attribution, title, pipeline = []) {
   return {
     type: SCENE_ADD,
     sceneId: url,
     bands,
+    bandLabels,
     redBand,
     greenBand,
     blueBand,
@@ -28,6 +29,7 @@ export function addScene(url, bands, redBand, greenBand, blueBand, isSingle, has
     hasOvr,
     isRGB,
     attribution: attribution || urlToAttribution[url],
+    title: title || url,
     pipeline,
   };
 }
@@ -130,7 +132,9 @@ export function addSceneFromIndex(url, attribution, pipeline) {
 
         const hasOvr = typeof files.find(file => /.TIFF?.OVR$/i.test(file)) !== 'undefined';
         dispatch(
-          addScene(url, bands, red, green, blue, false, hasOvr, false, attribution, usedPipeline)
+          addScene(
+            url, bands, false, red, green, blue, false, hasOvr, false, attribution, false, usedPipeline
+          )
         );
       } else if (contentType === 'image/tiff') {
         const tiff = await fromUrl(url);
@@ -158,7 +162,7 @@ export function addSceneFromIndex(url, attribution, pipeline) {
           && image.getSampleByteSize(0) === 1
         );
 
-        dispatch(addScene(url, bands, red, green, blue, true, false, isRGB, attribution, pipeline));
+        dispatch(addScene(url, bands, false, red, green, blue, true, false, isRGB, attribution, false, false, pipeline));
       } else if (contentType === 'application/json') {
         const relUrl = url.endsWith('/') ? url : url.substring(0, url.lastIndexOf('/'));
         const response = await fetch(url, {});
@@ -186,17 +190,32 @@ export function addSceneFromIndex(url, attribution, pipeline) {
 
 
         bands = new Map(
-          files
-            .filter(file => /.tiff?$/gi.test(file.href))
-            .map((file, i) => [i, file.href]),
+          files.map((file, i) => [i, file.href]),
         );
+
+        const bandLabels = new Map(
+          files.map((file, i) => [i, file.title]),
+        );
+
+        let id = url;
+        if (stacJSON.hasOwnProperty('properties')) {
+          if (stacJSON.properties.hasOwnProperty('collection') && 
+              stacJSON.hasOwnProperty('id')) {
+            id = stacJSON.properties.collection + '_' + stacJSON.id;
+          }
+        } else if (stacJSON.hasOwnProperty('id')) {
+          id = stacJSON.id;
+        }
 
         // TODO: Temporary overwrite of has overview value to true
         //       Either will not be necessary in the future using cog geotiffs
         //       or information about overview must be read from the STAC file
         const hasOvr = true; /* typeof files.find(file => /.TIFF?.OVR?.tiff$/i.test(file)) !== 'undefined' */
         dispatch(
-          addScene(url, bands, red, green, blue, false, hasOvr, false, attribution, usedPipeline),
+          addScene(
+            url, bands, bandLabels, red, green, blue, false,
+            hasOvr, false, attribution, id, usedPipeline,
+          ),
         );
       }
     } catch (error) {

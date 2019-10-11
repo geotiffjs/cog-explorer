@@ -48,7 +48,9 @@ export default function (state = initialState, action) {
       return [
         ...state.filter(scene => scene.id !== action.sceneId), {
           id: action.sceneId,
+          title: action.title,
           bands: action.bands,
+          bandLabels: action.bandLabels,
           redBand: action.redBand,
           greenBand: action.greenBand,
           blueBand: action.blueBand,
