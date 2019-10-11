@@ -164,12 +164,9 @@ export function addSceneFromIndex(url, attribution, pipeline) {
 
         dispatch(addScene(url, bands, false, red, green, blue, true, false, isRGB, attribution, false, false, pipeline));
       } else if (contentType === 'application/json') {
-        const relUrl = url.endsWith('/') ? url : url.substring(0, url.lastIndexOf('/'));
         const response = await fetch(url, {});
         const stacJSON = await response.json();
-
-
-        let files = [];
+        const files = [];
         for (const key in stacJSON.assets) {
           if (Object.prototype.hasOwnProperty.call(stacJSON.assets, key)) {
             const asset = stacJSON.assets[key];
@@ -197,6 +194,27 @@ export function addSceneFromIndex(url, attribution, pipeline) {
           files.map((file, i) => [i, file.title]),
         );
 
+        bandLabels.forEach((val, i) => {
+          if (val.indexOf('red') !== -1) {
+            red = i;
+          }
+          if (val.indexOf('green') !== -1) {
+            green = i;
+          }
+          if (val.indexOf('blue') !== -1) {
+            blue = i;
+          }
+        });
+
+        let customPipeline = [
+          {
+            operation: 'linear',
+            /* bands: 'red', */
+            min: 0.08,
+            max: 0.27,
+          },
+        ];
+
         let id = url;
         if (stacJSON.hasOwnProperty('properties')) {
           if (stacJSON.properties.hasOwnProperty('collection') && 
@@ -214,7 +232,7 @@ export function addSceneFromIndex(url, attribution, pipeline) {
         dispatch(
           addScene(
             url, bands, bandLabels, red, green, blue, false,
-            hasOvr, false, attribution, id, usedPipeline,
+            hasOvr, false, attribution, id, customPipeline,
           ),
         );
       }
