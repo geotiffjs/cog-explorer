@@ -215,6 +215,17 @@ export function addSceneFromIndex(url, attribution, pipeline) {
           },
         ];
 
+        if (red !== 0) {
+          // find out if there is auxiliary metadata for the bands
+          /*const headerResponse = await fetch(`${url}.`, { method: 'HEAD' });
+
+          if (!headerResponse.ok) {
+            throw new Error(`Failed to fetch ${url}`);
+          }
+
+          const contentType = headerResponse.headers.get('content-type');*/
+        }
+
         let id = url;
         if (stacJSON.hasOwnProperty('properties')) {
           if (stacJSON.properties.hasOwnProperty('collection') && 
