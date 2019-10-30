@@ -83,14 +83,14 @@ const Linear = connect(null, mapDispatchToProps)(({ step, sceneId, index, editSt
           <input
             className="form-control form-control-sm custom-range"
             value={step.min}
-            min="0"
-            max="1.0"
-            step="0.01"
+            min={step.statMin}
+            max={step.statMax}
+            step={step.stepsize}
             type="range"
-            onChange={e => editStep(sceneId, index, { min: e.target.value })}
+            onChange={e => editStep(sceneId, index, { min: Number(e.target.value) })}
           />
           <div className="input-group-append">
-            <span className="input-group-text" style={{ width: '3.5em' }}>{step.min}</span>
+            <span className="input-group-text" style={{ width: '6.5em' }}>{step.min.toFixed(2)}</span>
           </div>
         </div>
       </div>
@@ -100,14 +100,14 @@ const Linear = connect(null, mapDispatchToProps)(({ step, sceneId, index, editSt
           <input
             className="form-control form-control-sm custom-range"
             value={step.max}
-            min="0"
-            max="1.0"
-            step="0.01"
+            min={step.statMin}
+            max={step.statMax}
+            step={step.stepsize}
             type="range"
-            onChange={e => editStep(sceneId, index, { max: e.target.value })}
+            onChange={e => editStep(sceneId, index, { max: Number(e.target.value) })}
           />
           <div className="input-group-append">
-            <span className="input-group-text" style={{ width: '3.5em' }}>{step.max}</span>
+            <span className="input-group-text" style={{ width: '6.5em' }}>{step.max.toFixed(2)}</span>
           </div>
         </div>
       </div>

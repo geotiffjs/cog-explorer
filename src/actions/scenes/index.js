@@ -56,6 +56,12 @@ export function setError(message = null) {
   };
 }
 
+async function asyncForEach(array, callback) {
+  for (let index = 0; index < array.length; index++) {
+    await callback(array[index], index, array);
+  }
+}
+
 const landsat8Pipeline = [
   {
     operation: 'sigmoidal-contrast',
@@ -167,6 +173,7 @@ export function addSceneFromIndex(url, attribution, pipeline) {
         const response = await fetch(url, {});
         const stacJSON = await response.json();
         const files = [];
+
         for (const key in stacJSON.assets) {
           if (Object.prototype.hasOwnProperty.call(stacJSON.assets, key)) {
             const asset = stacJSON.assets[key];
@@ -183,37 +190,156 @@ export function addSceneFromIndex(url, attribution, pipeline) {
         let red = 0;
         let green = 0;
         let blue = 0;
-        let bands;
 
-
-        bands = new Map(
+        const bands = new Map(
           files.map((file, i) => [i, file.href]),
         );
+
+        var bandsMeta = {};
+
+        await asyncForEach(files, async (file, i) => {
+          try {
+            await fetch(file.href+'.aux.xml', {})
+              .then(resp => resp.text())
+              .then(str => (new window.DOMParser()).parseFromString(str, 'text/xml'))
+              .then((data) => {
+                bandsMeta[i] = {};
+                const histitem = data.getElementsByTagName('HistItem')[0];
+                for (let ch = 0; ch < histitem.children.length; ch++) {
+                  const { tagName, textContent } = histitem.children[ch];
+                  if (tagName !== 'HistCounts') {
+                    bandsMeta[i][tagName] = Number(textContent);
+                  } else {
+                    const histo = textContent.split('|').map(Number);
+                    bandsMeta[i][tagName] = histo;
+                    // Ignore first and last items when calculating total
+                    // as they could often will be null values
+                    let total = 0;
+                    for (let hh = 1; hh < histo.length - 1; hh++) {
+                      total += histo[hh];
+                    }
+                    bandsMeta[i].histoTotal = total;
+                  }
+                }
+                if (bandsMeta[i].hasOwnProperty('HistMin') &&
+                    bandsMeta[i].hasOwnProperty('HistMax') &&
+                    bandsMeta[i].hasOwnProperty('BucketCount') &&
+                    bandsMeta[i].hasOwnProperty('histoTotal')) {
+                  const extent = bandsMeta[i].HistMax - bandsMeta[i].HistMin;
+                  const histoTotal = bandsMeta[i].histoTotal;
+                  const histoStep = extent / bandsMeta[i].BucketCount;
+                  const histo = bandsMeta[i].HistCounts;
+                  let startPos;
+                  let endPos;
+                  let pos = 0;
+                  for (let hs = 1; hs < histo.length - 1; hs++) {
+                    pos += histo[hs];
+                    if (pos >= histoTotal * 0.02) {
+                      startPos = hs;
+                      break;
+                    }
+                  }
+                  bandsMeta[i].calcMinValue = startPos * histoStep;
+                  bandsMeta[i].calcMinValuePercentage = startPos / bandsMeta[i].BucketCount;
+                  pos = histoTotal;
+                  for (let he = histo.length - 2; he >= 1; he--) {
+                    pos -= histo[he];
+                    if (pos <= histoTotal * 0.98) {
+                      endPos = he;
+                      break;
+                    }
+                  }
+                  bandsMeta[i].calcMaxValue = endPos * histoStep;
+                  bandsMeta[i].calcMaxValuePercentage = endPos / bandsMeta[i].BucketCount;
+                }
+                const metaitem = data.getElementsByTagName('Metadata')[0];
+                for (let mi = 0; mi < metaitem.children.length; mi++) {
+                  const { attributes, textContent } = metaitem.children[mi];
+                  bandsMeta[i][attributes.key.value] = Number(textContent);
+                }
+              });
+          } catch (error) {
+            dispatch(setError(error.toString()));
+          }
+        });
+
+
+        /*
+        await asyncForEach(files, async (file, i) => {
+          try {
+            await fetch(file.href+'.aux.json', {})
+              .then(resp => resp.json())
+              .then((data) => {
+                console.log(data);
+              });
+          } catch (error) {
+            dispatch(setError(error.toString()));
+          }
+        });
+        */
+        console.log(bandsMeta);
 
         const bandLabels = new Map(
           files.map((file, i) => [i, file.title]),
         );
 
+        let customPipeline = [];
+
         bandLabels.forEach((val, i) => {
+          const extent = bandsMeta[i].calcMaxValue - bandsMeta[i].calcMinValue;
+          let stepsize = 1;
+          if (extent < 100 || extent > -100) {
+            stepsize = extent / 200;
+          } else {
+            stepsize = Number((extent / 200).toFixed(0));
+          }
+          const statMin = bandsMeta[i].calcMinValue - (extent * 0.20);
+          const statMax = bandsMeta[i].calcMaxValue + (extent * 0.20);
+
           if (val.indexOf('red') !== -1) {
             red = i;
+            customPipeline.push({
+              operation: 'linear',
+              bands: 'red',
+              min: bandsMeta[i].calcMinValue,
+              max: bandsMeta[i].calcMaxValue,
+              // statMin: bandsMeta[i].STATISTICS_MINIMUM,
+              // statMax: bandsMeta[i].STATISTICS_MAXIMUM,
+              statMin,
+              statMax,
+              stepsize,
+            });
           }
           if (val.indexOf('green') !== -1) {
             green = i;
+            customPipeline.push({
+              operation: 'linear',
+              bands: 'green',
+              min: bandsMeta[i].calcMinValue,
+              max: bandsMeta[i].calcMaxValue,
+              // statMin: bandsMeta[i].STATISTICS_MINIMUM,
+              // statMax: bandsMeta[i].STATISTICS_MAXIMUM,
+              statMin,
+              statMax,
+              stepsize,
+            });
           }
           if (val.indexOf('blue') !== -1) {
             blue = i;
+            customPipeline.push({
+              operation: 'linear',
+              bands: 'blue',
+              min: bandsMeta[i].calcMinValue,
+              max: bandsMeta[i].calcMaxValue,
+              // statMin: bandsMeta[i].STATISTICS_MINIMUM,
+              // statMax: bandsMeta[i].STATISTICS_MAXIMUM,
+              statMin,
+              statMax,
+              stepsize,
+            });
           }
         });
 
-        let customPipeline = [
-          {
-            operation: 'linear',
-            /* bands: 'red', */
-            min: 0.08,
-            max: 0.27,
-          },
-        ];
 
         if (red !== 0) {
           // find out if there is auxiliary metadata for the bands

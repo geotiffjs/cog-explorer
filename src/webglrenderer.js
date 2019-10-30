@@ -184,7 +184,8 @@ class LinearStep extends StepBase {
 
   static getFragmentSourceLib() {
     return `
-      float linear(float v, float min, float max) {
+      float linear(float v, float min, float max, float maxValue) {
+        v = v*maxValue;
         float extent = max - min;
         if (v > 0.0) {
           return (v-min)/extent;
@@ -200,7 +201,7 @@ class LinearStep extends StepBase {
   }
 
   getCall(variableName) {
-    return `linear(${variableName}, u_${this.prefix}_min, u_${this.prefix}_max)`;
+    return `linear(${variableName}, u_${this.prefix}_min, u_${this.prefix}_max, u_maxValue)`;
   }
 
   bindUniforms(gl, program, values) {
