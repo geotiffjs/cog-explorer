@@ -199,7 +199,7 @@ export function addSceneFromIndex(url, attribution, pipeline) {
 
         await asyncForEach(files, async (file, i) => {
           try {
-            await fetch(file.href+'.aux.xml', {})
+            await fetch(`${file.href}.aux.xml`, {})
               .then(resp => resp.text())
               .then(str => (new window.DOMParser()).parseFromString(str, 'text/xml'))
               .then((data) => {
@@ -259,7 +259,7 @@ export function addSceneFromIndex(url, attribution, pipeline) {
                 }
               });
           } catch (error) {
-            dispatch(setError(error.toString()));
+            dispatch(setError('No metadata found for provided STAC items'));
           }
         });
 
@@ -286,72 +286,78 @@ export function addSceneFromIndex(url, attribution, pipeline) {
         let customPipeline = [];
 
         bandLabels.forEach((val, i) => {
-          const extent = bandsMeta[i].calcMaxValue - bandsMeta[i].calcMinValue;
+          let statMin;
+          let statMax;
           let stepsize = 1;
-          if (extent < 100 || extent > -100) {
-            stepsize = extent / 200;
-          } else {
-            stepsize = Number((extent / 200).toFixed(0));
+          if (bandsMeta[i].hasOwnProperty('calcMinValue') &&
+              bandsMeta[i].hasOwnProperty('calcMaxValue')) {
+            const extent = bandsMeta[i].calcMaxValue - bandsMeta[i].calcMinValue;
+            if (extent < 100 || extent > -100) {
+              stepsize = extent / 200;
+            } else {
+              stepsize = Number((extent / 200).toFixed(0));
+            }
+            statMin = bandsMeta[i].calcMinValue - (extent * 0.20);
+            statMax = bandsMeta[i].calcMaxValue + (extent * 0.20);
           }
-          const statMin = bandsMeta[i].calcMinValue - (extent * 0.20);
-          const statMax = bandsMeta[i].calcMaxValue + (extent * 0.20);
 
           if (val.indexOf('red') !== -1) {
             red = i;
-            customPipeline.push({
-              operation: 'linear',
-              bands: 'red',
-              min: bandsMeta[i].calcMinValue,
-              max: bandsMeta[i].calcMaxValue,
-              // statMin: bandsMeta[i].STATISTICS_MINIMUM,
-              // statMax: bandsMeta[i].STATISTICS_MAXIMUM,
-              statMin,
-              statMax,
-              stepsize,
-            });
+            if (bandsMeta[i].hasOwnProperty('calcMinValue') &&
+              bandsMeta[i].hasOwnProperty('calcMaxValue')) {
+              customPipeline.push({
+                operation: 'linear',
+                bands: 'red',
+                min: bandsMeta[i].calcMinValue,
+                max: bandsMeta[i].calcMaxValue,
+                statMin,
+                statMax,
+                stepsize,
+              });
+            }
           }
           if (val.indexOf('green') !== -1) {
             green = i;
-            customPipeline.push({
-              operation: 'linear',
-              bands: 'green',
-              min: bandsMeta[i].calcMinValue,
-              max: bandsMeta[i].calcMaxValue,
-              // statMin: bandsMeta[i].STATISTICS_MINIMUM,
-              // statMax: bandsMeta[i].STATISTICS_MAXIMUM,
-              statMin,
-              statMax,
-              stepsize,
-            });
+            if (bandsMeta[i].hasOwnProperty('calcMinValue') &&
+              bandsMeta[i].hasOwnProperty('calcMaxValue')) {
+              customPipeline.push({
+                operation: 'linear',
+                bands: 'green',
+                min: bandsMeta[i].calcMinValue,
+                max: bandsMeta[i].calcMaxValue,
+                statMin,
+                statMax,
+                stepsize,
+              });
+            }
           }
           if (val.indexOf('blue') !== -1) {
             blue = i;
-            customPipeline.push({
-              operation: 'linear',
-              bands: 'blue',
-              min: bandsMeta[i].calcMinValue,
-              max: bandsMeta[i].calcMaxValue,
-              // statMin: bandsMeta[i].STATISTICS_MINIMUM,
-              // statMax: bandsMeta[i].STATISTICS_MAXIMUM,
-              statMin,
-              statMax,
-              stepsize,
-            });
+            if (bandsMeta[i].hasOwnProperty('calcMinValue') &&
+              bandsMeta[i].hasOwnProperty('calcMaxValue')) {
+              customPipeline.push({
+                operation: 'linear',
+                bands: 'blue',
+                min: bandsMeta[i].calcMinValue,
+                max: bandsMeta[i].calcMaxValue,
+                statMin,
+                statMax,
+                stepsize,
+              });
+            }
           }
         });
 
-
-        if (red !== 0) {
-          // find out if there is auxiliary metadata for the bands
-          /*const headerResponse = await fetch(`${url}.`, { method: 'HEAD' });
-
-          if (!headerResponse.ok) {
-            throw new Error(`Failed to fetch ${url}`);
-          }
-
-          const contentType = headerResponse.headers.get('content-type');*/
+        if (customPipeline.length === 0) {
+          /*customPipeline.push({
+            operation: 'linear',
+            min: bandsMeta[i].calcMinValue,
+            max: bandsMeta[i].calcMaxValue,
+            statMin,
+            statMax,
+            stepsize,
+          });*/
         }
-
         let id = url;
         if (stacJSON.hasOwnProperty('properties')) {
           if (stacJSON.properties.hasOwnProperty('collection') && 
@@ -397,7 +403,10 @@ export function addStep(url, operation) {
     case 'linear':
       values = {
         min: 0.0,
-        max: 1.0,
+        max: 100,
+        statMin: 0,
+        statMax: 65535,
+        stepsize: 500,
       };
       break;
     default:
