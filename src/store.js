@@ -3,6 +3,9 @@ import thunk from 'redux-thunk';
 import sceneReducer from './reducers/scenes';
 import mainReducer from './reducers/main';
 import { addSceneFromIndex, sceneChangeBands } from './actions/scenes';
+import { setStacItems } from './actions/main';
+
+import Amplify, { Auth, Storage } from 'aws-amplify';
 
 
 function parseQuery(query) {
@@ -57,11 +60,26 @@ const store = createStore(
       longitude: params.has('long') ? parseFloat(params.get('long')) : 16.37,
       latitude: params.has('lat') ? parseFloat(params.get('lat')) : 48.21,
       zoom: params.has('zoom') ? parseFloat(params.get('zoom')) : 5,
+      stacitems: [],
     },
     scenes: [],
   },
   applyMiddleware(thunk),
 );
+
+const order = params.get('order');
+if (order && order !== '') {
+  // Request list and search for stacitems
+  Storage.list(order)
+    .then((result) => {
+      let stacitems = [];
+      for (let i = 0; i < result.length; i++) {
+        stacitems.push(result[i].key);
+      }
+      store.dispatch(setStacItems(stacitems));
+    })
+    .catch(err => console.log(err));
+}
 
 const scene = params.get('scene');
 if (scene && scene !== '') {
@@ -74,5 +92,6 @@ if (scene && scene !== '') {
     })));
   }
 }
+
 
 export default store;

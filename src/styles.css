@@ -70,3 +70,9 @@
 .card.card-body{
   width: 720px;
 }
+
+.dropdown-menu.show{
+  overflow: auto;
+  max-height: 700px;
+  max-width: 400px;
+}

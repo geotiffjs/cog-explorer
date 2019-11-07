@@ -1,6 +1,6 @@
 import types from '../types';
 
-const { START_LOADING, STOP_LOADING, TILE_START_LOADING, TILE_STOP_LOADING, SET_POSITION } = types;
+const { START_LOADING, STOP_LOADING, TILE_START_LOADING, TILE_STOP_LOADING, SET_POSITION, SET_STACITEMS } = types;
 
 export function startLoading() {
   return { type: START_LOADING };
@@ -20,4 +20,8 @@ export function tileStopLoading() {
 
 export function setPosition(longitude, latitude, zoom) {
   return { type: SET_POSITION, longitude, latitude, zoom };
+}
+
+export function setStacItems(stacitems) {
+  return { type: SET_STACITEMS, stacitems };
 }

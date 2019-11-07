@@ -1,6 +1,6 @@
 import types from '../types';
 
-const { START_LOADING, STOP_LOADING, TILE_START_LOADING, TILE_STOP_LOADING, SET_POSITION, SET_ERROR } = types;
+const { START_LOADING, STOP_LOADING, TILE_START_LOADING, TILE_STOP_LOADING, SET_POSITION, SET_ERROR, SET_STACITEMS } = types;
 
 const initialState = {
   isLoading: false,
@@ -9,6 +9,7 @@ const initialState = {
   latitude: 0,
   zoom: 5,
   errorMessage: null,
+  stacitems: [],
 };
 
 export default function (state = initialState, action) {
@@ -33,6 +34,11 @@ export default function (state = initialState, action) {
       return {
         ...state,
         errorMessage: action.message,
+      };
+    case SET_STACITEMS:
+      return {
+        ...state,
+        stacitems: action.stacitems,
       };
     default:
       return state;
