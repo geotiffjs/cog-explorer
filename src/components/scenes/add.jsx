@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
 import { addSceneFromIndex } from '../../actions/scenes/index';
+import { addSceneFromBucket } from '../../actions/scenes/index';
 import '../../styles.css';
 
 const urlPattern = new RegExp('^(https?:\\/\\/)?' + // protocol
@@ -16,6 +17,7 @@ const mapStateToProps = ({ scenes, main }) => ({ scenes, isLoading: main.isLoadi
 const mapDispatchToProps = (dispatch) => {
   return {
     addSceneFromIndex: (...args) => dispatch(addSceneFromIndex(...args)),
+    addSceneFromBucket: (...args) => dispatch(addSceneFromBucket(...args)),
   };
 };
 
@@ -49,6 +51,7 @@ class ConnectedAddSceneForm extends Component {
 
   render() {
     const { url } = this.state;
+    const exampleBucketKey0 = 'landsat/LC81890272019259.json';
     const example0Url = 'https://upperaustria-400.s3.eu-central-1.amazonaws.com/landsat/LC81890272019259/LC81890272019259.json';
     const example1Url = 'https://landsat-pds.s3.amazonaws.com/c1/L8/189/027/LC08_L1TP_189027_20170403_20170414_01_T1/index.html';
     const example2Url = 'https://landsat-pds.s3.amazonaws.com/c1/L8/139/045/LC08_L1TP_139045_20170304_20170316_01_T1/index.html';
@@ -83,6 +86,13 @@ class ConnectedAddSceneForm extends Component {
               <span className="sr-only">Toggle Dropdown</span>
             </button>
             <div className="dropdown-menu">
+              <button
+                className="btn btn-secondary dropdown-item"
+                onClick={() => this.props.addSceneFromBucket(exampleBucketKey0)}
+                disabled={this.isLoading()}
+              >
+                Bucket STAC Example
+              </button>
               <button
                 className="btn btn-secondary dropdown-item"
                 onClick={() => this.props.addSceneFromIndex(example0Url)}

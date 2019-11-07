@@ -4,6 +4,8 @@ import { fromUrl } from 'geotiff/src/main';
 import types from '../../types';
 import { startLoading, stopLoading } from '../main';
 
+import { Storage } from 'aws-amplify';
+
 const {
   SCENE_ADD, SCENE_REMOVE, SCENE_CHANGE_BANDS,
   SCENE_PIPELINE_ADD_STEP, SCENE_PIPELINE_REMOVE_STEP, SCENE_PIPELINE_INDEX_STEP,
@@ -78,7 +80,7 @@ const landsat8Pipeline = [
   },
 ];
 
-export function addSceneFromIndex(url, attribution, pipeline) {
+export function addSceneFromIndex(url, attribution, pipeline, awslink) {
   return async (dispatch, getState) => {
     const { scenes } = getState();
 
@@ -92,14 +94,15 @@ export function addSceneFromIndex(url, attribution, pipeline) {
 
     dispatch(startLoading());
     try {
-      // find out type of data the URL is pointing to
-      const headerResponse = await fetch(url, { method: 'HEAD' });
-
-      if (!headerResponse.ok) {
-        throw new Error(`Failed to fetch ${url}`);
+      let contentType = 'application/json';
+      if (!awslink) {
+        // if not a awslink find out type of data the URL is pointing to
+        const headerResponse = await fetch(url, { method: 'HEAD' });
+        if (!headerResponse.ok) {
+          throw new Error(`Failed to fetch ${url}`);
+        }
+        contentType = headerResponse.headers.get('content-type');
       }
-
-      const contentType = headerResponse.headers.get('content-type');
 
       if (contentType === 'text/html') {
         const relUrl = url.endsWith('/') ? url : url.substring(0, url.lastIndexOf('/'));
@@ -168,7 +171,7 @@ export function addSceneFromIndex(url, attribution, pipeline) {
           && image.getSampleByteSize(0) === 1
         );
 
-        dispatch(addScene(url, bands, false, red, green, blue, true, false, isRGB, attribution, false, false, pipeline));
+        dispatch(addScene(url, bands, false, red, green, blue, true, false, isRGB, attribution, false, pipeline));
       } else if (contentType === 'application/json') {
         const response = await fetch(url, {});
         const stacJSON = await response.json();
@@ -379,6 +382,22 @@ export function addSceneFromIndex(url, attribution, pipeline) {
           ),
         );
       }
+    } catch (error) {
+      // TODO: set error somewhere to present to user
+      dispatch(setError(error.toString()));
+    } finally {
+      dispatch(stopLoading());
+    }
+  };
+}
+
+export function addSceneFromBucket(url, attribution, pipeline) {
+  return async (dispatch, getState) => {
+    try {
+      Storage.get(url, { expires: (60 * 60) })
+        .then((result) => {
+          dispatch(addSceneFromIndex(result, attribution, pipeline, true));
+        });
     } catch (error) {
       // TODO: set error somewhere to present to user
       dispatch(setError(error.toString()));

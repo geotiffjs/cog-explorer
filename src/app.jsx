@@ -9,6 +9,90 @@ import MapView from './components/mapview';
 
 import { setError } from './actions/scenes';
 
+import { Authenticator, Greetings, withAuthenticator } from 'aws-amplify-react';
+import Amplify, { Auth, Storage } from 'aws-amplify';
+
+/*
+VUE_APP_USER_POOL_ID=eu-central-1_PVzQoPPhy
+VUE_APP_IDENTITY_POOL_ID=eu-central-1:c3676457-0c2f-454a-877a-e7b0a85afb21
+VUE_APP_USER_POOL_WEB_CLIENT_ID=6edih15optkvute0crfkl9lc2a
+VUE_APP_REGION=eu-central-1
+*/
+
+Amplify.configure({
+  Auth: {
+
+    // REQUIRED only for Federated Authentication - Amazon Cognito Identity Pool ID
+    identityPoolId: 'eu-central-1:c3676457-0c2f-454a-877a-e7b0a85afb21',
+    // REQUIRED - Amazon Cognito Region
+    region: 'eu-central-1',
+    // OPTIONAL - Amazon Cognito User Pool ID
+    userPoolId: 'eu-central-1_PVzQoPPhy',
+    // OPTIONAL - Amazon Cognito Web Client ID (26-char alphanumeric string)
+    userPoolWebClientId: '6edih15optkvute0crfkl9lc2a',
+    /*
+    // OPTIONAL - Enforce user authentication prior to accessing AWS resources or not
+    mandatorySignIn: false,
+    // OPTIONAL - Configuration for cookie storage
+    // Note: if the secure flag is set to true, then the cookie transmission
+    // requires a secure protocol
+    cookieStorage: {
+      // REQUIRED - Cookie domain (only required if cookieStorage is provided)
+      domain: '.yourdomain.com',
+      // OPTIONAL - Cookie path
+      path: '/',
+      // OPTIONAL - Cookie expiration in days
+      expires: 365,
+      // OPTIONAL - Cookie secure flag
+      // Either true or false, indicating if the cookie transmission requires
+      // a secure protocol (https).
+      secure: true,
+    },
+    // OPTIONAL - customized storage object
+    storage: new MyStorage(),
+    // OPTIONAL - Manually set the authentication flow type. Default is 'USER_SRP_AUTH'
+    authenticationFlowType: 'USER_PASSWORD_AUTH',
+    // OPTIONAL - Manually set key value pairs that can be passed to Cognito Lambda Triggers
+    clientMetadata: { myCustomKey: 'myCustomValue' },
+    */
+  },
+  Storage: {
+    bucket: '0a5ba29c-7e94-4a6d-9e19-3ccca76538c6',
+    region: 'eu-central-1',
+  },
+});
+
+/*
+Storage.get('landsat/LC81890272019259.json', { expires: (60 * 60) })
+  .then(result => console.log(result))
+  .catch(err => console.log(err));*/
+
+/*Storage.put('test.txt', 'Protected Content', {
+    level: 'protected',
+    contentType: 'text/plain'
+})
+.then (result => console.log(result))
+.catch(err => console.log(err));
+*/
+
+Storage.list('landsat/', { level: 'private' })
+  .then(result => console.log(result))
+  .catch(err => console.log(err));
+
+// You can get the current config object
+const currentConfig = Auth.configure();
+/*
+Auth.currentAuthenticatedUser({
+  bypassCache: true,
+})
+  .then(user => console.log(user))
+  .catch(err => console.log(err));
+
+
+Auth.currentSession()
+  .then(data => console.log(data))
+  .catch(err => console.log(err));*/
+
 const mapStateToProps = ({ scenes, main }) => ({ scenes, ...main });
 const mapDispatchToProps = { setError };
 
@@ -156,4 +240,25 @@ class ConnectedApp extends Component {
 
 const App = hot(module)(connect(mapStateToProps, mapDispatchToProps)((ConnectedApp)));
 
-export default App;
+/*
+class AppWithAuth extends Component {
+  render(){
+    return (
+      <div>
+      <Authenticator
+      hide={
+        [
+            Greetings
+        ]
+    }>
+        <App />
+      </Authenticator>
+      </div>
+    );
+  }
+}
+export default AppWithAuth;
+*/
+
+
+export default withAuthenticator(App);

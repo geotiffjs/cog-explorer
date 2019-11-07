@@ -24,6 +24,11 @@ module.exports = {
 //          },
 //       }],
       {
+        test: /\.mjs$/,
+        include: /node_modules/,
+        type: 'javascript/auto',
+      },
+      {
         test: /\.worker\.js$/,
         use: {
           loader: 'worker-loader',
@@ -51,7 +56,7 @@ module.exports = {
   },
 
   resolve: {
-    extensions: ['.js', '.jsx'],
+    extensions: ['.mjs', '.js', '.jsx'],
   },
 
   node: {
