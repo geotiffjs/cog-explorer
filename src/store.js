@@ -54,7 +54,7 @@ const bands = params.has('bands') ? params.get('bands')
 const order = params.get('order');
 if (order && order !== '') {
   // Request list and search for stacitems
-  Storage.list(order, { level: 'priivate' })
+  Storage.list(order, { level: 'private' })
     .then((result) => {
       let stacitems = [];
       for (let i = 0; i < result.length; i++) {

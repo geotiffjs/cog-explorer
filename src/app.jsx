@@ -12,6 +12,7 @@ import { setError } from './actions/scenes';
 import { Authenticator, Greetings, withAuthenticator } from 'aws-amplify-react';
 import Amplify, { Auth, Storage } from 'aws-amplify';
 
+
 Amplify.configure({
   Auth: {
     // REQUIRED only for Federated Authentication - Amazon Cognito Identity Pool ID
@@ -24,10 +25,11 @@ Amplify.configure({
     userPoolWebClientId: '6edih15optkvute0crfkl9lc2a',
   },
   Storage: {
-    bucket: '0a5ba29c-7e94-4a6d-9e19-3ccca76538c6',
+    bucket: 'eoxhub-dev',
     region: 'eu-central-1',
   },
 });
+
 
 const mapStateToProps = ({ scenes, stacitems, main }) => ({ scenes, stacitems, ...main });
 const mapDispatchToProps = { setError };
