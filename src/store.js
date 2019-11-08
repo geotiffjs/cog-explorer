@@ -58,7 +58,9 @@ if (order && order !== '') {
     .then((result) => {
       let stacitems = [];
       for (let i = 0; i < result.length; i++) {
-        stacitems.push(result[i].key);
+        if (/^.*\/item.*.json$/.test(result[i].key)) {
+          stacitems.push(result[i].key);
+        }
       }
       store.dispatch(setStacItems(stacitems));
     })
