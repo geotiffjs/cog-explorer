@@ -9,9 +9,10 @@
 }
 
 .navbar-brand>img {
-    height: 50px;
+    height: 30px;
     width: auto !important;
     padding: 5px;
+    margin-top: -5px;
 }
 
 .map-progress-bar {

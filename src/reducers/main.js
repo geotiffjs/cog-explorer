@@ -10,6 +10,7 @@ const initialState = {
   zoom: 5,
   errorMessage: null,
   stacitems: [],
+  order: '',
 };
 
 export default function (state = initialState, action) {

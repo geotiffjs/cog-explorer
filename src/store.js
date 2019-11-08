@@ -51,6 +51,20 @@ const bands = params.has('bands') ? params.get('bands')
   .filter(b => !Number.isNaN(b))
   : [];
 
+const order = params.get('order');
+if (order && order !== '') {
+  // Request list and search for stacitems
+  Storage.list(order, { level: 'priivate' })
+    .then((result) => {
+      let stacitems = [];
+      for (let i = 0; i < result.length; i++) {
+        stacitems.push(result[i].key);
+      }
+      store.dispatch(setStacItems(stacitems));
+    })
+    .catch(err => console.log(err));
+}
+
 const store = createStore(
   combineReducers({
     scenes: sceneReducer,
@@ -61,25 +75,12 @@ const store = createStore(
       latitude: params.has('lat') ? parseFloat(params.get('lat')) : 48.21,
       zoom: params.has('zoom') ? parseFloat(params.get('zoom')) : 5,
       stacitems: [],
+      order,
     },
     scenes: [],
   },
   applyMiddleware(thunk),
 );
-
-const order = params.get('order');
-if (order && order !== '') {
-  // Request list and search for stacitems
-  Storage.list(order)
-    .then((result) => {
-      let stacitems = [];
-      for (let i = 0; i < result.length; i++) {
-        stacitems.push(result[i].key);
-      }
-      store.dispatch(setStacItems(stacitems));
-    })
-    .catch(err => console.log(err));
-}
 
 const scene = params.get('scene');
 if (scene && scene !== '') {
