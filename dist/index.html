@@ -6,45 +6,36 @@
       crossorigin="anonymous">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.10/css/all.css" integrity="sha384-+d0P83n9kaQMCwj8F4RJB66tzIwOKmrdb46+porD/OvrJ+37WqIM7UoBtwHO6Nlg"
       crossorigin="anonymous">
-    <title>COG-Explorer</title>
+    <title>Data-Explorer</title>
   </head>
   <body>
     <div class="modal" id="initModal" role="dialog" aria-labelledby="exampleModalLabel">
       <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">Cloud Optimized GeoTIFF (COG) Explorer</h5>
+            <h5 class="modal-title" id="exampleModalLabel">Data Explorer</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
           <div class="modal-body">
-            <h2>Howdie!</h2>
             <p>
-              Welcome to the COG-Explorer!
+              Welcome to the EOX Data Explorer
             </p>
             <p>
-              This app allows you to visually inspect individual Cloud Optimized GeoTIFFs (COGs) like
-              scenes from the Landsat-8 archive on Amazon S3.
-              Either copy the URL to the COG or to the <code>index.html</code> of the Landsat 8 scene you want to
-              investigate in the "Custom URL" field and hit "Load URL or sample", or alternatively, show
-              one of the preselected samples using the <button class="btn btn-sm"><i class="fas fa-caret-down"></i></button> button. Note, while optimizing
-              the data access by utilizing the COG features to only retrieve necessary parts of the data this
-              app downloads the actual raster values, UInt16 for Landsat 8, which uses quite some download bandwidth.
-              Additionally the data is download in its original projection and re-projected on the fly.
+              This app allows you to visually inspect your orders.
+              Click on the <button class="btn btn-sm"><i class="fas fa-caret-down"></i></button> button
+              to show a list of the available datasets you can explore.
             </p>
             <p>
-              The selected COG is displayed on the map, which you can zoom and pan as you
-              like. It is visualized as natural color composite with some default processing
-              steps applied. Using the <button class="btn btn-sm"><i class="fas fa-wrench"></i></button>
+              The dataset is displayed on the map, which you can zoom and pan as you
+              like. Using the <button class="btn btn-sm"><i class="fas fa-wrench"></i></button>
               button you can adjust the visualization by selecting the bands to use and processing
               steps to apply.
             </p>
             <p>
               For the band selection, either define red, green, and blue channels
-              individually or use one of the predefined scenarios. As image processing steps
-              currently sigmoidal contrast enhancement and gamma can be applied on all or
-              individual channels.
+              individually or use one of the predefined scenarios.
             </p>
             <p>
               This app uses the <a href="https://github.com/geotiffjs/geotiff.js">geotiff.js</a>
@@ -52,11 +43,6 @@
               zoomlevel). Taking advantage of the optimized structure of COGs, only the parts
               of the file that are actually required are requested, drastically reducing
               the overall amount of data transmitted from the archive.
-            </p>
-            <p>
-              Please keep in mind that at the moment this app is a proof-of-concept demonstration
-              with some room for improvement. Nevertheless we're looking forward to hear your feedback.
-              Also let us know if you want to help in any way.
             </p>
             <p>
               If you want to know more about COGs please refer to <a href="http://www.cogeo.org/">their introduction page</a>.
