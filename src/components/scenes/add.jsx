@@ -66,28 +66,29 @@ class ConnectedAddSceneForm extends Component {
     return (
       <React.Fragment>
         <div className="form-group input-group">
-          <input
+          { /* <input
             className="form-control span6"
             placeholder="Custom URL"
             value={url}
             onChange={this.handleUrlChange}
-          />
+          /> */ }
           <div className="input-group-append">
-            <button
+            { /* <button
               className="btn btn-primary"
               value={url}
               onClick={this.handleAddClick}
               disabled={!this.checkUrl(url) || this.isLoading()}
             >
               Load URL or sample
-            </button>
+            </button> */ }
             <button
-              className="btn btn-primary dropdown-toggle dropdown-toggle-split"
+              className="btn btn-primary dropdown-toggle-split"
               data-toggle="dropdown"
               aria-haspopup="true"
               aria-expanded="false"
+              drop="left"
             >
-              <span className="sr-only">Toggle Dropdown</span>
+              Select dataset
             </button>
             <div className="dropdown-menu">
               {items}

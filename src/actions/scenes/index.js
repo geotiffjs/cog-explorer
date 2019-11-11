@@ -189,11 +189,6 @@ export function addSceneFromIndex(url, attribution, pipeline, awslink) {
           }
         }
 
-        let usedPipeline = pipeline;
-        let red = 0;
-        let green = 0;
-        let blue = 0;
-
         const bands = new Map(
           files.map((file, i) => [i, file.href]),
         );
@@ -205,7 +200,7 @@ export function addSceneFromIndex(url, attribution, pipeline, awslink) {
             await fetch(`${file.href}.aux.xml`, {})
               .then((resp) => {
                 if (resp.status === 200) {
-                  resp.text();
+                  return resp.text();
                 } else {
                   throw new Error('Invalid Metadata xml');
                 }
@@ -224,7 +219,7 @@ export function addSceneFromIndex(url, attribution, pipeline, awslink) {
                     // Ignore first and last items when calculating total
                     // as they could often will be null values
                     let total = 0;
-                    for (let hh = 1; hh < histo.length - 1; hh++) {
+                    for (let hh = 0; hh < histo.length; hh++) {
                       total += histo[hh];
                     }
                     bandsMeta[i].histoTotal = total;
@@ -241,9 +236,9 @@ export function addSceneFromIndex(url, attribution, pipeline, awslink) {
                   let startPos;
                   let endPos;
                   let pos = 0;
-                  for (let hs = 1; hs < histo.length - 1; hs++) {
+                  for (let hs = 0; hs < histo.length; hs++) {
                     pos += histo[hs];
-                    if (pos >= histoTotal * 0.02) {
+                    if (pos >= histoTotal * 0.001) {
                       startPos = hs;
                       break;
                     }
@@ -251,9 +246,9 @@ export function addSceneFromIndex(url, attribution, pipeline, awslink) {
                   bandsMeta[i].calcMinValue = startPos * histoStep;
                   bandsMeta[i].calcMinValuePercentage = startPos / bandsMeta[i].BucketCount;
                   pos = histoTotal;
-                  for (let he = histo.length - 2; he >= 1; he--) {
+                  for (let he = histo.length - 1; he >= 0; he--) {
                     pos -= histo[he];
-                    if (pos <= histoTotal * 0.98) {
+                    if (pos <= histoTotal * 0.999) {
                       endPos = he;
                       break;
                     }
@@ -292,68 +287,58 @@ export function addSceneFromIndex(url, attribution, pipeline, awslink) {
           files.map((file, i) => [i, file.title]),
         );
 
+        let usedPipeline = pipeline;
+        let red = -1;
+        let green = -1;
+        let blue = -1;
+
+
         let customPipeline = [];
 
-        bandLabels.forEach((val, i) => {
+        let addStep = (band, bandcolor) => {
           let statMin;
           let statMax;
           let stepsize = 1;
-          if (bandsMeta[i].hasOwnProperty('calcMinValue') &&
-              bandsMeta[i].hasOwnProperty('calcMaxValue')) {
-            const extent = bandsMeta[i].calcMaxValue - bandsMeta[i].calcMinValue;
+          if (bandsMeta.hasOwnProperty(band) &&
+               bandsMeta[band].hasOwnProperty('calcMinValue') &&
+               bandsMeta[band].hasOwnProperty('calcMaxValue')) {
+            const extent = bandsMeta[band].calcMaxValue - bandsMeta[band].calcMinValue;
             if (extent < 100 || extent > -100) {
               stepsize = extent / 200;
             } else {
               stepsize = Number((extent / 200).toFixed(0));
             }
-            statMin = bandsMeta[i].calcMinValue - (extent * 0.20);
-            statMax = bandsMeta[i].calcMaxValue + (extent * 0.20);
+            statMin = bandsMeta[band].calcMinValue - (extent * 0.20);
+            statMax = bandsMeta[band].calcMaxValue + (extent * 0.20);
           }
 
-          if (val.indexOf('red') !== -1) {
+          if (bandsMeta.hasOwnProperty(band) &&
+               bandsMeta[band].hasOwnProperty('calcMinValue') &&
+               bandsMeta[band].hasOwnProperty('calcMaxValue')) {
+            customPipeline.push({
+              operation: 'linear',
+              bands: bandcolor,
+              min: bandsMeta[band].calcMinValue,
+              max: bandsMeta[band].calcMaxValue,
+              statMin,
+              statMax,
+              stepsize,
+            });
+          }
+        };
+
+        bandLabels.forEach((val, i) => {
+          if (val.toLowerCase().includes('red') && red === -1) {
             red = i;
-            if (bandsMeta[i].hasOwnProperty('calcMinValue') &&
-              bandsMeta[i].hasOwnProperty('calcMaxValue')) {
-              customPipeline.push({
-                operation: 'linear',
-                bands: 'red',
-                min: bandsMeta[i].calcMinValue,
-                max: bandsMeta[i].calcMaxValue,
-                statMin,
-                statMax,
-                stepsize,
-              });
-            }
+            addStep(i, 'red');
           }
-          if (val.indexOf('green') !== -1) {
-            green = i;
-            if (bandsMeta[i].hasOwnProperty('calcMinValue') &&
-              bandsMeta[i].hasOwnProperty('calcMaxValue')) {
-              customPipeline.push({
-                operation: 'linear',
-                bands: 'green',
-                min: bandsMeta[i].calcMinValue,
-                max: bandsMeta[i].calcMaxValue,
-                statMin,
-                statMax,
-                stepsize,
-              });
-            }
-          }
-          if (val.indexOf('blue') !== -1) {
+          if (val.toLowerCase().includes('blue') && blue === -1) {
             blue = i;
-            if (bandsMeta[i].hasOwnProperty('calcMinValue') &&
-              bandsMeta[i].hasOwnProperty('calcMaxValue')) {
-              customPipeline.push({
-                operation: 'linear',
-                bands: 'blue',
-                min: bandsMeta[i].calcMinValue,
-                max: bandsMeta[i].calcMaxValue,
-                statMin,
-                statMax,
-                stepsize,
-              });
-            }
+            addStep(i, 'blue');
+          }
+          if (val.toLowerCase().includes('green') && green === -1) {
+            green = i;
+            addStep(i, 'green');
           }
         });
 
@@ -367,9 +352,9 @@ export function addSceneFromIndex(url, attribution, pipeline, awslink) {
             stepsize,
           });*/
         }
-        let id = url;
+        let id = url.split('?')[0];
         if (stacJSON.hasOwnProperty('properties')) {
-          if (stacJSON.properties.hasOwnProperty('collection') && 
+          if (stacJSON.properties.hasOwnProperty('collection') &&
               stacJSON.hasOwnProperty('id')) {
             id = stacJSON.properties.collection + '_' + stacJSON.id;
           }
@@ -380,7 +365,7 @@ export function addSceneFromIndex(url, attribution, pipeline, awslink) {
         // TODO: Temporary overwrite of has overview value to true
         //       Either will not be necessary in the future using cog geotiffs
         //       or information about overview must be read from the STAC file
-        const hasOvr = true; /* typeof files.find(file => /.TIFF?.OVR?.tiff$/i.test(file)) !== 'undefined' */
+        const hasOvr = false; /* typeof files.find(file => /.TIFF?.OVR?.tiff$/i.test(file)) !== 'undefined' */
         dispatch(
           addScene(
             url, bands, bandLabels, red, green, blue, false,

@@ -77,7 +77,12 @@
 }
 
 .dropdown-menu.show{
-  overflow: auto;
-  max-height: 700px;
-  max-width: 400px;
+  right: -5px;
+  left: auto!important;
+  position: absolute;
+  transform: none!important;
+  top: 40px!important;
+  /* transform: translate3d(-25px, 38px, 0px); */
+  /* top: 0px; */
+  /* left: 0px; */
 }
