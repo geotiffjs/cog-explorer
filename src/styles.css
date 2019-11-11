@@ -1,11 +1,15 @@
 .navbar {
-  background: #004170 !important;
+  background: #fff !important;
   padding-bottom: 0 !important;
   padding-top: 0 !important;
   margin: 0 !important;
   border: 0 !important;
   height: 50px !important;
   /* display: block !important; */
+}
+
+.navbar-brand {
+  color: #004170 !important;
 }
 
 .navbar-brand>img {

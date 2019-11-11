@@ -72,15 +72,16 @@ class ConnectedApp extends Component {
 
     return (
       <div>
-        <nav className="navbar navbar-expand-lg navbar-light bg-light" >
+        {/* <nav className="navbar navbar-expand-lg navbar-light bg-light" >
           <div className="container-fluid">
             <div className="navbar-header">
+
               <a className="navbar-brand" href="https://www.eurodatacube.com/" target="_blank" rel="noopener noreferrer">
-                <img alt="" src="images/EOX_Logo_white.svg"/>
+                <img alt="" src="/img/EOxHub_logo_blue.80d1c4ad.svg"/>
               </a>
 
               <span className="navbar-brand" style={{ color: '#fff' }}>
-                Data Explorer
+                Explorer
               </span>
               {
                 errorMessage &&
@@ -116,13 +117,13 @@ class ConnectedApp extends Component {
               />
             </div>
           </div>
-        </nav>
+        </nav> */}
 
         <div
           style={{
             position: 'absolute',
-            top: '58px',
-            right: '8px',
+            top: '10px',
+            right: '58px',
             maxWidth: 'calc(100% - 58px)',
             zIndex: 50,
           }}
@@ -134,16 +135,49 @@ class ConnectedApp extends Component {
           </form>
         </div>
 
-        <div style={{ height: 'calc(100% - 50px)' }}>
+        <div style={{ height: '100%', overflow: 'hidden' }}>
           <MapView />
         </div>
         <div className="container">
+          {
+            errorMessage &&
+            <div
+              className="alert alert-warning fade show"
+              role="alert"
+              style={{
+                position: 'absolute',
+                top: '11px',
+                right: '485px',
+                padding: '5px 4rem 5px 5px',
+              }}
+            >{errorMessage}
+              <button type="button" className="close" aria-label="Close" style={{
+                position: 'absolute',
+                top: 0,
+                right: 0,
+                padding: '5px',
+              }} onClick={() => this.props.setError()}>
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+          }
+          <i
+            className="navbar-brand fas fa-spin fa-cog text-light"
+            style={{
+              position: 'absolute',
+              top: '14px',
+              right: '250px',
+              visibility: (isLoading || tilesLoading > 0) ? 'visible' : 'hidden',
+              zIndex: 99,
+            }}
+          />
           <button
             className="btn btn-large"
             style={{
               position: 'absolute',
               top: '10px',
               right: '8px',
+              height: '38px'
             }}
             onClick={() => this.setState({ showList: !showList })}
             disabled={scenes.length === 0}

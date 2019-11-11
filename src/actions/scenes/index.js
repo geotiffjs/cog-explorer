@@ -180,7 +180,7 @@ export function addSceneFromIndex(url, attribution, pipeline, awslink) {
         for (const key in stacJSON.assets) {
           if (Object.prototype.hasOwnProperty.call(stacJSON.assets, key)) {
             const asset = stacJSON.assets[key];
-            if (asset.type === 'image/x.geotiff' || asset.type === 'image/geotiff') {
+            if (asset.type === 'image/x.geotiff' || asset.type === 'image/geotiff' || asset.type.includes('image/tiff') || asset.type === 'image/.tif') {
               files.push({
                 title: asset.title,
                 href: asset.href,
@@ -203,7 +203,13 @@ export function addSceneFromIndex(url, attribution, pipeline, awslink) {
         await asyncForEach(files, async (file, i) => {
           try {
             await fetch(`${file.href}.aux.xml`, {})
-              .then(resp => resp.text())
+              .then((resp) => {
+                if (resp.status === 200) {
+                  resp.text();
+                } else {
+                  throw new Error('Invalid Metadata xml');
+                }
+              })
               .then(str => (new window.DOMParser()).parseFromString(str, 'text/xml'))
               .then((data) => {
                 bandsMeta[i] = {};
@@ -394,7 +400,7 @@ export function addSceneFromIndex(url, attribution, pipeline, awslink) {
 export function addSceneFromBucket(url, attribution, pipeline) {
   return async (dispatch, getState) => {
     try {
-      Storage.get(url, { expires: (60 * 60) })
+      Storage.get(url, { level: 'private', expires: (60 * 60) })
         .then((result) => {
           dispatch(addSceneFromIndex(result, attribution, pipeline, true));
         });
