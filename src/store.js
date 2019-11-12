@@ -2,7 +2,7 @@ import { createStore, applyMiddleware, combineReducers } from 'redux';
 import thunk from 'redux-thunk';
 import sceneReducer from './reducers/scenes';
 import mainReducer from './reducers/main';
-import { addSceneFromIndex, sceneChangeBands } from './actions/scenes';
+import { addSceneFromBucket, addSceneFromIndex, sceneChangeBands } from './actions/scenes';
 import { setStacItems } from './actions/main';
 
 import Amplify, { Auth, Storage } from 'aws-amplify';
@@ -63,6 +63,10 @@ if (order && order !== '') {
         }
       }
       store.dispatch(setStacItems(stacitems));
+      // Load first item
+      if (stacitems.length > 0) {
+        store.dispatch(addSceneFromBucket(stacitems[0]));
+      }
     })
     .catch(err => console.log(err));
 }
