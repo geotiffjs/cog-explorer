@@ -13,18 +13,18 @@
       <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">Data Explorer</h5>
+            <h5 class="modal-title" id="exampleModalLabel">Data Explorer - Client Data Processing Engine</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
           <div class="modal-body">
             <p>
-              Welcome to the EOX Data Explorer
+              Welcome to the Euro Data Cube Data Explorer
             </p>
             <p>
               This app allows you to visually inspect your orders.
-              Click on the <button class="btn btn-sm"><i class="fas fa-caret-down"></i></button> button
+              Click on the "Select dataset" button
               to show a list of the available datasets you can explore.
             </p>
             <p>
@@ -34,11 +34,7 @@
               steps to apply.
             </p>
             <p>
-              For the band selection, either define red, green, and blue channels
-              individually or use one of the predefined scenarios.
-            </p>
-            <p>
-              This app uses the <a href="https://github.com/geotiffjs/geotiff.js">geotiff.js</a>
+              This app is based on <a href="https://geotiffjs.github.io/cog-explorer/" target="_blank">COG-Explorer</a>, which uses the <a href="https://github.com/geotiffjs/geotiff.js">geotiff.js</a>
               library to read the actual raster values like UInt16 from the band files (or the overviews, depending on the maps
               zoomlevel). Taking advantage of the optimized structure of COGs, only the parts
               of the file that are actually required are requested, drastically reducing
@@ -50,7 +46,7 @@
             <p>Proudly presented by:
               <br>
               <a href="https://eox.at" target="_blank">
-                <img src="images/EOX_Logo.svg" style="width: 120px; margin-top: 10px;">
+                <img src="/img/EOX_Logo.svg" style="width: 120px; margin-top: 10px;">
               </a>
             </p>
           </div>
