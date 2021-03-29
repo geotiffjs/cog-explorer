@@ -49,10 +49,10 @@ class MapView extends Component {
           extent: [-180, -90, 180, 90],
           source: new TileWMS({
             url: 'https://s2maps-tiles.eu/wms',
-            params: { LAYERS: 's2cloudless-2019' },
+            params: { LAYERS: 's2cloudless-2020' },
             projection: 'EPSG:4326',
             attributions: [
-              '<a xmlns: dct="http://purl.org/dc/terms/" href="https://s2maps.eu" property="dct:title">Sentinel-2 cloudless - https://s2maps.eu</a> by <a xmlns:cc="http://creativecommons.org/ns#" href="https://eox.at" property="cc:attributionName" rel="cc:attributionURL">EOX IT Services GmbH</a> (Contains modified Copernicus Sentinel data 2019)',
+              '<a xmlns: dct="http://purl.org/dc/terms/" href="https://s2maps.eu" property="dct:title">Sentinel-2 cloudless - https://s2maps.eu</a> by <a xmlns:cc="http://creativecommons.org/ns#" href="https://eox.at" property="cc:attributionName" rel="cc:attributionURL">EOX IT Services GmbH</a> (Contains modified Copernicus Sentinel data 2020)',
             ],
           }),
         }),
