@@ -12,7 +12,7 @@ import TileGrid from 'ol/tilegrid/tilegrid';
 import proj from 'ol/proj';
 import extent from 'ol/extent';
 
-import { fromUrl, fromUrls, Pool } from 'geotiff/src/main';
+import { fromUrl, fromUrls, Pool } from 'geotiff';
 
 import CanvasTileImageSource, { ProgressBar } from '../maputil';
 import { renderData } from '../renderutils';
