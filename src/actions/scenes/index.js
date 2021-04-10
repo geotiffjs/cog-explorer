@@ -91,7 +91,11 @@ export function addSceneFromIndex(url, attribution, pipeline) {
         throw new Error(`Failed to fetch ${url}`);
       }
 
-      const contentType = headerResponse.headers.get('content-type');
+      let contentType = headerResponse.headers.get('content-type');
+      if (contentType) {
+        // Keep only the main type (before first ';')
+        contentType = contentType.split(';')[0].trim();
+      }
 
       if (contentType === 'text/html') {
         const relUrl = url.endsWith('/') ? url : url.substring(0, url.lastIndexOf('/'));
