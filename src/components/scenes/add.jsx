@@ -84,7 +84,7 @@ class ConnectedAddSceneForm extends Component {
                 onClick={() => this.props.addSceneFromIndex(example1Url)}
                 disabled={!this.checkUrl(example1Url) || this.isLoading()}
               >
-                Sentinel RGB sample
+                Sentinel-2 RGB sample
               </button>
               <button
                 className="btn btn-secondary dropdown-item"
