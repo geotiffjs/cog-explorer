@@ -200,7 +200,7 @@ class MapView extends Component {
 
     const epsg = `EPSG:${code}`;
     if (!proj4.defs(epsg)) {
-      const response = await fetch(`//epsg.io/${code}.proj4`);
+      const response = await fetch(`https://epsg.io/${code}.proj4`);
       proj4.defs(epsg, await response.text());
     }
 

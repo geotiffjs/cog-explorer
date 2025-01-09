@@ -93,7 +93,7 @@ export function addSceneFromIndex(url, attribution, pipeline) {
 
       const contentType = headerResponse.headers.get('content-type');
 
-      if (contentType === 'text/html') {
+      if (contentType.includes('text/html')) {
         const relUrl = url.endsWith('/') ? url : url.substring(0, url.lastIndexOf('/'));
         const response = await fetch(url, {});
         const content = await response.text();
@@ -132,7 +132,7 @@ export function addSceneFromIndex(url, attribution, pipeline) {
         dispatch(
           addScene(url, bands, red, green, blue, false, hasOvr, false, attribution, usedPipeline)
         );
-      } else if (contentType === 'image/tiff') {
+      } else if (contentType.includes('image/tiff')) {
         const tiff = await fromUrl(url);
         const image = await tiff.getImage();
 
